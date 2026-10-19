@@ -1,0 +1,180 @@
+
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#176b52">
+  <title>Domowy Magazyn</title>
+  <style>
+    :root{--green:#176b52;--pale:#e7f4ee;--ink:#20302a;--muted:#68766f;--line:#e0e8e3;--bg:#f5f8f6;--red:#a63232}
+    *{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui,sans-serif}
+    header{background:var(--green);color:white;padding:22px 16px}header h1{margin:0;font-size:25px}header p{margin:5px 0 0;color:#e1f2e9;font-size:14px}
+    main{max-width:850px;margin:auto;padding:16px;display:grid;gap:15px}.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+    .stat,.panel,.product,.shopping-item{background:white;border:1px solid var(--line);border-radius:14px}.stat{padding:12px}.stat strong{display:block;font-size:24px}.stat span{font-size:12px;color:var(--muted)}
+    .panel{padding:15px}.panel h2{font-size:18px;margin:0 0 12px}.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}.between{justify-content:space-between}
+    button,input,select{font:inherit}button{border:0;border-radius:10px;padding:10px 12px;background:var(--green);color:white;font-weight:650;cursor:pointer}button.secondary{background:var(--pale);color:var(--green)}button.ghost{background:#f0f3f1;color:var(--ink)}button.danger{background:#fff0f0;color:var(--red)}button.small{padding:7px 9px;font-size:13px}
+    input,select{width:100%;min-width:0;border:1px solid #cfdad3;border-radius:10px;padding:11px;background:white;color:var(--ink)}label{display:block;font-size:13px;color:var(--muted);margin-bottom:5px}
+    .fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.full{grid-column:1/-1}
+    .product-list,.shopping-list{display:grid;gap:9px}.product{padding:13px}.product-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.product h3{margin:0;font-size:16px}.sub{color:var(--muted);font-size:13px}.qty{font-size:23px;font-weight:750;white-space:nowrap}.qty small{font-size:12px;font-weight:500;color:var(--muted)}
+    .pill{font-size:12px;font-weight:700;border-radius:999px;padding:4px 8px;display:inline-block;background:#edf2ef;color:#526158}.pill.low{background:#fff0d9;color:#8b5b08}.pill.out{background:#ffe6e6;color:var(--red)}
+    .actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.actions button{flex:1}.shopping-item{padding:11px;display:flex;align-items:center;gap:10px}.shopping-item input[type=checkbox]{width:19px;height:19px;accent-color:var(--green)}.item-name{flex:1}.shopping-item.done .item-name{text-decoration:line-through;color:var(--muted)}
+    .empty,.note{color:var(--muted);font-size:13px}.history-list li{font-size:13px;color:var(--muted);margin:6px 0 0 18px}.forecast{border-left:3px solid var(--green);padding:8px 10px;background:#f0f7f3;border-radius:0 8px 8px 0;margin-top:8px;font-size:14px}.hidden{display:none!important}
+    @media(min-width:700px){main{grid-template-columns:1fr 1fr}.stats,.wide{grid-column:1/-1}.fields.three{grid-template-columns:repeat(3,minmax(0,1fr))}}
+  </style>
+</head>
+<body>
+<header><h1>🏠 Domowy Magazyn</h1><p>Wiesz, co masz. Wiesz, czego brakuje.</p></header>
+<main>
+  <section class="stats">
+    <div class="stat"><strong id="statProducts">0</strong><span>Produkty</span></div>
+    <div class="stat"><strong id="statLow">0</strong><span>Niski stan</span></div>
+    <div class="stat"><strong id="statShopping">0</strong><span>Na liście zakupów</span></div>
+  </section>
+  <section class="panel wide">
+    <div class="row between"><h2 id="formTitle">➕ Dodaj produkt</h2><button id="cancelEdit" class="ghost small hidden" type="button">Anuluj edycję</button></div>
+    <form id="productForm">
+      <div class="fields three">
+        <div class="full"><label for="productName">Nazwa produktu</label><input id="productName" maxlength="70" placeholder="np. Mleko" required></div>
+        <div><label for="productQty">Aktualny stan</label><input id="productQty" type="number" min="0" step="0.1" value="1" required></div>
+        <div><label for="productMin">Minimalny zapas</label><input id="productMin" type="number" min="0" step="0.1" value="1" required></div>
+        <div><label for="productUnit">Jednostka</label><select id="productUnit"><option value="szt.">szt.</option><option value="opak.">opak.</option><option value="l">l</option><option value="kg">kg</option><option value="rol.">rol.</option></select></div>
+      </div>
+      <div class="row" style="margin-top:12px"><button id="saveProduct" type="submit">Dodaj produkt</button></div>
+    </form>
+    <p class="note">Gdy stan osiągnie minimum lub spadnie poniżej niego, produkt trafi na listę zakupów.</p>
+  </section>
+  <section class="panel">
+    <div class="row between"><h2>📦 Produkty</h2><span class="sub" id="productCount"></span></div>
+    <div id="productList" class="product-list"></div>
+  </section>
+  <section class="panel">
+    <div class="row between"><h2>🛒 Lista zakupów</h2><button id="clearDone" class="ghost small" type="button">Usuń kupione</button></div>
+    <div id="shoppingList" class="shopping-list"></div>
+    <p class="note">Zaznaczenie zakupu nie zmienia stanu magazynowego. Po uzupełnieniu produktu zaktualizuj jego stan osobno.</p>
+  </section>
+  <section class="panel"><h2>📈 Prognoza zużycia</h2><div id="forecastList"></div><p class="note">Prognozy są orientacyjne i stają się dokładniejsze, gdy aplikacja zbierze historię zużycia.</p></section>
+  <section class="panel">
+    <div class="row between"><h2>🕘 Historia zmian</h2><button id="clearHistory" class="ghost small" type="button">Wyczyść historię</button></div>
+    <ul id="historyList" class="history-list"></ul>
+  </section>
+  <section class="panel wide">
+    <h2>⚙️ Dane aplikacji</h2>
+    <p class="note">Wersja testowa: dane zapisują się tylko w tej przeglądarce na tym urządzeniu. Nie są jeszcze współdzielone z innymi domownikami.</p>
+    <div class="row" style="margin-top:10px"><button id="exportData" class="secondary" type="button">Eksportuj kopię danych</button><button id="resetDemo" class="danger" type="button">Przywróć przykładowe dane</button></div>
+    <p class="note" id="saveStatus" aria-live="polite"></p>
+  </section>
+</main>
+<script>
+(function(){
+  "use strict";
+  const STORAGE_KEY="domowy-magazyn-v1";
+  const $=id=>document.getElementById(id);
+  let editingId=null;
+  let data=loadData();
+
+  function makeId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
+  function esc(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+  function now(){return new Date().toISOString()}
+  function sampleData(){
+    const rows=[["Mleko",2,1,"szt."],["Jajka",6,4,"szt."],["Chleb",1,1,"szt."],["Makaron",3,1,"opak."],["Ryż",2,1,"opak."],["Olej",1,1,"l"],["Papier toaletowy",4,2,"rol."],["Płyn do naczyń",1,1,"szt."],["Karma dla zwierząt",2,1,"opak."],["Proszek do prania",1,1,"opak."]];
+    return {products:rows.map(([name,qty,min,unit])=>({id:makeId(),name,qty,min,unit,createdAt:now()})),shopping:[],history:[]}
+  }
+  function loadData(){
+    try{const s=localStorage.getItem(STORAGE_KEY);if(s){const d=JSON.parse(s);if(d&&Array.isArray(d.products)&&Array.isArray(d.shopping)&&Array.isArray(d.history))return d}}catch(e){}
+    return sampleData()
+  }
+  function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));$("saveStatus").textContent="Dane zapisane na tym urządzeniu."}catch(e){$("saveStatus").textContent="Nie udało się zapisać danych. Sprawdź pamięć przeglądarki."}}
+  function addHistory(action,p,delta){data.history.unshift({id:makeId(),at:now(),action,productName:p.name,delta,qty:p.qty,unit:p.unit});data.history=data.history.slice(0,100)}
+  function syncShopping(p){
+    const active=data.shopping.find(i=>i.productId===p.id&&!i.done);
+    if(p.qty<=p.min){if(!active)data.shopping.unshift({id:makeId(),productId:p.id,name:p.name,unit:p.unit,done:false,addedAt:now()});else{active.name=p.name;active.unit=p.unit}}
+    else data.shopping=data.shopping.filter(i=>!(i.productId===p.id&&!i.done))
+  }
+  function fmtDate(v){try{return new Date(v).toLocaleString("pl-PL",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}catch(e){return ""}}
+  function render(){
+    data.products.forEach(syncShopping);
+    $("statProducts").textContent=data.products.length;
+    $("statLow").textContent=data.products.filter(p=>p.qty<=p.min).length;
+    $("statShopping").textContent=data.shopping.filter(i=>!i.done).length;
+    $("productCount").textContent=data.products.length+" pozycji";
+    renderProducts();renderShopping();renderForecast();renderHistory();save()
+  }
+  function renderProducts(){
+    const root=$("productList");
+    if(!data.products.length){root.innerHTML='<p class="empty">Nie masz jeszcze produktów. Dodaj pierwszy powyżej.</p>';return}
+    root.innerHTML=data.products.map(p=>{
+      const low=p.qty<=p.min,out=p.qty<=0,status=out?"Brak w magazynie":low?"Niski stan":"Zapas OK";
+      return `<article class="product"><div class="product-top"><div><h3>${esc(p.name)}</h3><span class="pill ${out?"out":low?"low":""}">${status}</span><p class="sub">Minimum: ${p.min} ${esc(p.unit)}</p></div><div class="qty">${p.qty} <small>${esc(p.unit)}</small></div></div><div class="actions"><button class="small" data-action="use" data-id="${p.id}">− Zużyto 1</button><button class="small secondary" data-action="add" data-id="${p.id}">+ Uzupełnij 1</button><button class="small ghost" data-action="edit" data-id="${p.id}">Edytuj</button><button class="small danger" data-action="delete" data-id="${p.id}">Usuń</button></div></article>`
+    }).join("")
+  }
+  function renderShopping(){
+    const root=$("shoppingList");
+    if(!data.shopping.length){root.innerHTML='<p class="empty">Lista zakupów jest pusta. Produkty poniżej minimum pojawią się tutaj automatycznie.</p>';return}
+    root.innerHTML=data.shopping.map(i=>`<div class="shopping-item ${i.done?"done":""}"><input type="checkbox" data-shopping="${i.id}" ${i.done?"checked":""} aria-label="Oznacz ${esc(i.name)} jako kupione"><div class="item-name"><strong>${esc(i.name)}</strong><div class="sub">${esc(i.unit)} · dodano ${fmtDate(i.addedAt)}</div></div><button class="small ghost" data-remove-shopping="${i.id}" type="button">Usuń</button></div>`).join("")
+  }
+  function renderForecast(){
+    const root=$("forecastList");
+    if(!data.products.length){root.innerHTML='<p class="empty">Dodaj produkty, aby zobaczyć prognozę.</p>';return}
+    root.innerHTML=data.products.map(p=>{
+      const ev=data.history.filter(h=>h.productName===p.name&&h.action==="Zużyto"&&h.delta<0);
+      if(ev.length<2)return `<div class="forecast"><strong>${esc(p.name)}</strong><br>Za mało danych — zbieramy historię zużycia.</div>`;
+      const first=new Date(ev[ev.length-1].at).getTime(),last=new Date(ev[0].at).getTime(),days=Math.max(1,(last-first)/86400000);
+      const used=ev.reduce((sum,h)=>sum+Math.abs(h.delta),0),perDay=used/days;
+      if(!perDay||p.qty<=0)return `<div class="forecast"><strong>${esc(p.name)}</strong><br>${p.qty<=0?"Produkt jest na wyczerpaniu.":"Brak wystarczających danych do prognozy."}</div>`;
+      return `<div class="forecast"><strong>${esc(p.name)}</strong><br>Średnio ${perDay.toFixed(2).replace(".",",")} ${esc(p.unit)} dziennie · zapas na około ${Math.ceil(p.qty/perDay)} dni.</div>`
+    }).join("")
+  }
+  function renderHistory(){
+    const root=$("historyList");
+    if(!data.history.length){root.innerHTML="<li>Brak zmian. Twoje działania pojawią się tutaj.</li>";return}
+    root.innerHTML=data.history.slice(0,25).map(h=>`<li>${fmtDate(h.at)} — <strong>${esc(h.action)}</strong>: ${esc(h.productName)}${h.delta!==0?` (${h.delta>0?"+":""}${h.delta} ${esc(h.unit)})`:""}; stan: ${h.qty} ${esc(h.unit)}</li>`).join("")
+  }
+  function resetForm(){editingId=null;$("productForm").reset();$("productQty").value="1";$("productMin").value="1";$("formTitle").textContent="➕ Dodaj produkt";$("saveProduct").textContent="Dodaj produkt";$("cancelEdit").classList.add("hidden")}
+  $("productForm").addEventListener("submit",e=>{
+    e.preventDefault();
+    const name=$("productName").value.trim(),qty=Number($("productQty").value),min=Number($("productMin").value),unit=$("productUnit").value;
+    if(!name||!Number.isFinite(qty)||!Number.isFinite(min)||qty<0||min<0){alert("Sprawdź nazwę, stan i minimum.");return}
+    if(editingId){
+      const p=data.products.find(x=>x.id===editingId);if(!p)return;
+      p.name=name;p.qty=qty;p.min=min;p.unit=unit;
+      data.shopping.forEach(i=>{if(i.productId===p.id&&!i.done){i.name=name;i.unit=unit}});
+      addHistory("Edytowano",p,0);syncShopping(p)
+    }else{
+      const p={id:makeId(),name,qty,min,unit,createdAt:now()};data.products.push(p);addHistory("Dodano",p,0);syncShopping(p)
+    }
+    resetForm();render()
+  });
+  $("cancelEdit").addEventListener("click",resetForm);
+  $("productList").addEventListener("click",e=>{
+    const b=e.target.closest("button[data-action]");if(!b)return;
+    const p=data.products.find(x=>x.id===b.dataset.id);if(!p)return;
+    const a=b.dataset.action;
+    if(a==="use"||a==="add"){
+      const delta=a==="use"?-1:1;if(a==="use"&&p.qty<=0){alert("Stan produktu już wynosi zero.");return}
+      p.qty=Math.max(0,Math.round((p.qty+delta)*10)/10);addHistory(a==="use"?"Zużyto":"Uzupełniono",p,delta);syncShopping(p);render()
+    }else if(a==="edit"){
+      editingId=p.id;$("productName").value=p.name;$("productQty").value=p.qty;$("productMin").value=p.min;$("productUnit").value=p.unit;
+      $("formTitle").textContent="✏️ Edytuj produkt";$("saveProduct").textContent="Zapisz zmiany";$("cancelEdit").classList.remove("hidden");$("productName").focus();window.scrollTo({top:0,behavior:"smooth"})
+    }else if(a==="delete"&&confirm(`Usunąć produkt „${p.name}” i jego aktywną pozycję na liście zakupów?`)){
+      data.products=data.products.filter(x=>x.id!==p.id);data.shopping=data.shopping.filter(i=>i.productId!==p.id);addHistory("Usunięto",p,0);render()
+    }
+  });
+  $("shoppingList").addEventListener("change",e=>{
+    const box=e.target.closest("input[data-shopping]");if(!box)return;
+    const item=data.shopping.find(i=>i.id===box.dataset.shopping);if(!item)return;
+    item.done=box.checked;const p=data.products.find(x=>x.id===item.productId);if(p)addHistory(box.checked?"Oznaczono jako kupione":"Przywrócono na listę",p,0);render()
+  });
+  $("shoppingList").addEventListener("click",e=>{const b=e.target.closest("button[data-remove-shopping]");if(b){data.shopping=data.shopping.filter(i=>i.id!==b.dataset.removeShopping);render()}});
+  $("clearDone").addEventListener("click",()=>{data.shopping=data.shopping.filter(i=>!i.done);render()});
+  $("clearHistory").addEventListener("click",()=>{if(confirm("Wyczyścić całą historię zmian?")){data.history=[];render()}});
+  $("exportData").addEventListener("click",()=>{
+    const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+    a.href=url;a.download="domowy-magazyn-kopia.json";a.click();URL.revokeObjectURL(url)
+  });
+  $("resetDemo").addEventListener("click",()=>{if(confirm("To zastąpi bieżące dane przykładowymi produktami. Czy na pewno?")){data=sampleData();resetForm();render()}});
+  render()
+})();
+</script>
+</body>
+</html>
