@@ -863,11 +863,14 @@ window.domowyMagazynApp = {
       await startSync(user);
       loginPanel.classList.add("hidden");
       appMain.classList.remove("hidden");
+    
     } catch (error) {
       console.error("Nie udało się uruchomić synchronizacji:", error);
       loginPanel.classList.remove("hidden");
       appMain.classList.add("hidden");
-      loginStatus.textContent = "Błąd: " + (error.code || error.message || "Nieznany błąd");
+      loginStatus.textContent =
+        "Błąd: " + (error.code || error.message || "Nieznany błąd");
+    }
   });
 </script>
   
