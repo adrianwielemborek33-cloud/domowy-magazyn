@@ -233,15 +233,25 @@
   render()
 })();
 </script>
+
 <script type="module">
   import { initializeApp }
     from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
 
-  import { getAuth }
-    from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+  import {
+    getAuth,
+    signInWithEmailAndPassword,
+    onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
 
-  import { getFirestore }
-    from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+  import {
+    getFirestore,
+    doc,
+    getDocFromServer,
+    onSnapshot,
+    setDoc,
+    serverTimestamp
+  } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
 
   const firebaseConfig = {
     apiKey: "AIzaSyCSs5tKjCotgz2LRy8AGb6z1VVQtrVOcbs",
@@ -254,52 +264,182 @@
   const firebaseAuth = getAuth(firebaseApp);
   const firebaseDb = getFirestore(firebaseApp);
 
-  // Udostępniamy połączenie do dalszego podłączenia aplikacji.
   window.domowyMagazynFirebase = {
     app: firebaseApp,
     auth: firebaseAuth,
     db: firebaseDb
   };
 
-  console.log("Firebase został zainicjalizowany.");
-import {
-  signInWithEmailAndPassword,
-  onAuthStateChanged,
-  signOut
-} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+  const loginForm = document.getElementById("loginForm");
+  const loginPanel = document.getElementById("loginPanel");
+  const appMain = document.getElementById("appMain");
+  const loginStatus = document.getElementById("loginStatus");
 
-const loginForm = document.getElementById("loginForm");
-const loginPanel = document.getElementById("loginPanel");
-const appMain = document.getElementById("appMain");
-const loginStatus = document.getElementById("loginStatus");
+  const saveStatus = document.getElementById("saveStatus");
 
-loginForm.addEventListener("submit", async (event) => {
-  event.preventDefault();
+  const sharedDataRef = doc(
+    firebaseDb,
+    "households",
+    "domowy-magazyn",
+    "data",
+    "current"
+  );
 
-  loginStatus.textContent = "Logowanie...";
+  let unsubscribeData = null;
+  let syncReady = false;
 
-  const email = document.getElementById("loginEmail").value.trim();
-  const password = document.getElementById("loginPassword").value;
+  loginForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+    loginStatus.textContent = "Logowanie...";
 
-  try {
-    await signInWithEmailAndPassword(firebaseAuth, email, password);
-    loginStatus.textContent = "";
-  } catch (error) {
-    console.error(error);
-    loginStatus.textContent =
-      "Nie udało się zalogować. Sprawdź e-mail i hasło.";
+    const email = document.getElementById("loginEmail").value.trim();
+    const password = document.getElementById("loginPassword").value;
+
+    try {
+      await signInWithEmailAndPassword(firebaseAuth, email, password);
+      loginStatus.textContent = "";
+    } catch (error) {
+      console.error(error);
+      loginStatus.textContent =
+        "Nie udało się zalogować. Sprawdź e-mail i hasło.";
+    }
+  });
+
+  window.addEventListener("domowy-magazyn-local-change", async (event) => {
+    const user = firebaseAuth.currentUser;
+
+    if (!user || !syncReady) return;
+
+    try {
+      await setDoc(sharedDataRef, {
+        payload: event.detail,
+        updatedBy: user.uid,
+        updatedAt: serverTimestamp()
+      });
+
+      if (saveStatus) {
+        saveStatus.textContent = "Dane zapisane i zsynchronizowane z chmurą.";
+      }
+    } catch (error) {
+      console.error("Błąd synchronizacji:", error);
+
+      if (saveStatus) {
+        saveStatus.textContent =
+          "Dane zapisano lokalnie, ale synchronizacja z chmurą się nie udała.";
+      }
+    }
+  });
+
+  async function startSync(user) {
+    syncReady = false;
+
+    if (unsubscribeData) {
+      unsubscribeData();
+      unsubscribeData = null;
+    }
+
+    const serverSnapshot = await getDocFromServer(sharedDataRef);
+
+    if (serverSnapshot.exists()) {
+      const remoteData = serverSnapshot.data().payload;
+
+      if (
+        !remoteData ||
+        !Array.isArray(remoteData.products) ||
+        !Array.isArray(remoteData.shopping) ||
+        !Array.isArray(remoteData.history)
+      ) {
+        throw new Error("Dane w chmurze mają nieprawidłowy format.");
+      }
+
+      window.domowyMagazynApplyingRemote = true;
+
+      try {
+        window.domowyMagazynApp.setData(remoteData);
+      } finally {
+        window.domowyMagazynApplyingRemote = false;
+      }
+    } else {
+      await setDoc(sharedDataRef, {
+        payload: window.domowyMagazynApp.getData(),
+        updatedBy: user.uid,
+        updatedAt: serverTimestamp()
+      });
+    }
+
+    unsubscribeData = onSnapshot(
+      sharedDataRef,
+      (snapshot) => {
+        if (!snapshot.exists()) return;
+
+        const remoteData = snapshot.data().payload;
+
+        if (
+          !remoteData ||
+          !Array.isArray(remoteData.products) ||
+          !Array.isArray(remoteData.shopping) ||
+          !Array.isArray(remoteData.history)
+        ) {
+          return;
+        }
+
+        window.domowyMagazynApplyingRemote = true;
+
+        try {
+          window.domowyMagazynApp.setData(remoteData);
+        } catch (error) {
+          console.error("Nie udało się wczytać danych z chmury:", error);
+        } finally {
+          window.domowyMagazynApplyingRemote = false;
+        }
+
+        if (saveStatus) {
+          saveStatus.textContent = "Magazyn połączony z chmurą.";
+        }
+      },
+      (error) => {
+        console.error("Błąd nasłuchiwania zmian:", error);
+
+        if (saveStatus) {
+          saveStatus.textContent =
+            "Utracono połączenie z chmurą. Sprawdź internet.";
+        }
+      }
+    );
+
+    syncReady = true;
   }
-});
 
-onAuthStateChanged(firebaseAuth, (user) => {
-  if (user) {
+  onAuthStateChanged(firebaseAuth, async (user) => {
+    if (!user) {
+      syncReady = false;
+
+      if (unsubscribeData) {
+        unsubscribeData();
+        unsubscribeData = null;
+      }
+
+      loginPanel.classList.remove("hidden");
+      appMain.classList.add("hidden");
+      loginStatus.textContent = "";
+      return;
+    }
+
     loginPanel.classList.add("hidden");
-    appMain.classList.remove("hidden");
-  } else {
-    loginPanel.classList.remove("hidden");
     appMain.classList.add("hidden");
-  }
-});
+
+    try {
+      await startSync(user);
+      loginPanel.classList.add("hidden");
+      appMain.classList.remove("hidden");
+    } catch (error) {
+      console.error("Nie udało się uruchomić synchronizacji:", error);
+      loginPanel.classList.remove("hidden");
+      appMain.classList.add("hidden");
+      loginStatus.textContent =
+        "Nie udało się wczytać wspólnego magazynu. Sprawdź połączenie i reguły Firestore, a następnie odśwież stronę.";
+    }
+  });
 </script>
 </body>
 </html>
