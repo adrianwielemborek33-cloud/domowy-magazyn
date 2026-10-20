@@ -49,6 +49,8 @@
       <p id="loginStatus" class="note" aria-live="polite"></p>
     </form>
   </section>
+</main>
+<main id="appMain" class="hidden">
   <section class="stats">
     <div class="stat"><strong id="statProducts">0</strong><span>Produkty</span></div>
     <div class="stat"><strong id="statLow">0</strong><span>Niski stan</span></div>
@@ -228,6 +230,44 @@
   };
 
   console.log("Firebase został zainicjalizowany.");
+import {
+  signInWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut
+} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+
+const loginForm = document.getElementById("loginForm");
+const loginPanel = document.getElementById("loginPanel");
+const appMain = document.getElementById("appMain");
+const loginStatus = document.getElementById("loginStatus");
+
+loginForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  loginStatus.textContent = "Logowanie...";
+
+  const email = document.getElementById("loginEmail").value.trim();
+  const password = document.getElementById("loginPassword").value;
+
+  try {
+    await signInWithEmailAndPassword(firebaseAuth, email, password);
+    loginStatus.textContent = "";
+  } catch (error) {
+    console.error(error);
+    loginStatus.textContent =
+      "Nie udało się zalogować. Sprawdź e-mail i hasło.";
+  }
+});
+
+onAuthStateChanged(firebaseAuth, (user) => {
+  if (user) {
+    loginPanel.classList.add("hidden");
+    appMain.classList.remove("hidden");
+  } else {
+    loginPanel.classList.remove("hidden");
+    appMain.classList.add("hidden");
+  }
+});
 </script>
 </body>
 </html>
