@@ -70,16 +70,9 @@
         <div><label for="productMin">Minimalny zapas</label><input id="productMin" type="number" min="0" step="0.1" value="1" required></div>
         <div><label for="productUnit">Jednostka</label><select id="productUnit"><option value="szt.">szt.</option><option value="opak.">opak.</option><option value="l">l</option><option value="kg">kg</option><option value="rol.">rol.</option></select></div>
       <div>
-  <label for="productCategory">Kategoria</label>
-  <select id="productCategory">
-    <option value="Żywność">Żywność</option>
-    <option value="Napoje">Napoje</option>
-    <option value="Chemia gospodarcza">Chemia gospodarcza</option>
-    <option value="Higiena i kosmetyki">Higiena i kosmetyki</option>
-    <option value="Dziecko">Dziecko</option>
-    <option value="Zwierzęta">Zwierzęta</option>
-    <option value="Dom i inne">Dom i inne</option>
-  </select>
+  
+<label for="productCategory">Kategoria</label>
+<select id="productCategory"></select>
       </div>
       </div>
       <div class="row" style="margin-top:12px"><button id="saveProduct" type="submit">Dodaj produkt</button></div>
@@ -88,9 +81,32 @@
   </section>
   <section class="panel">
     <div class="row between"><h2>📦 Produkty</h2><span class="sub" id="productCount"></span></div>
-    <div id="productList" class="product-list"></div>
-  </section>
-  
+    
+<div class="field">
+  <label for="categoryFilter">Filtruj według kategorii</label>
+  <select id="categoryFilter">
+    <option value="">Wszystkie kategorie</option>
+  </select>
+</div>
+
+<div id="productList" class="product-list"></div>
+</section>
+
+<section class="panel">
+  <div class="row between">
+    <h2>🏷️ Zarządzanie kategoriami</h2>
+  </div>
+  <p class="sub">Dodawaj własne kategorie do organizowania produktów.</p>
+  <div class="fields">
+    <div class="field">
+      <label for="newCategory">Nazwa nowej kategorii</label>
+      <input id="newCategory" type="text" placeholder="Np. Ogród">
+    </div>
+  </div>
+  <button type="button" id="addCategoryBtn">+ Dodaj kategorię</button>
+  <div id="categoryList"></div>
+</section>
+
 <section class="panel">
   <div class="row between">
     <h2>🛒 Lista zakupów</h2>
@@ -137,18 +153,45 @@
   const $=id=>document.getElementById(id);
   let editingId=null;
   let shoppingTab="todo";
+  const DEFAULT_CATEGORIES = [
+  "Żywność",
+  "Napoje",
+  "Chemia gospodarcza",
+  "Higiena i kosmetyki",
+  "Dziecko",
+  "Zwierzęta",
+  "Dom i inne"
+];
   let data=loadData();
 
   function makeId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
   function esc(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
   function now(){return new Date().toISOString()}
+  
   function sampleData(){
     const rows=[["Mleko",2,1,"szt."],["Jajka",6,4,"szt."],["Chleb",1,1,"szt."],["Makaron",3,1,"opak."],["Ryż",2,1,"opak."],["Olej",1,1,"l"],["Papier toaletowy",4,2,"rol."],["Płyn do naczyń",1,1,"szt."],["Karma dla zwierząt",2,1,"opak."],["Proszek do prania",1,1,"opak."]];
-    return {products:rows.map(([name,qty,min,unit])=>({id:makeId(),name,qty,min,unit,createdAt:now()})),shopping:[],history:[]}
-  }
+    return {products:rows.map(([name,qty,min,unit])=>({id:makeId(),name,qty,min,unit,category:"Żywność",createdAt:now()})),shopping:[],history:[],categories:[...DEFAULT_CATEGORIES]}
+    }
+
   function loadData(){
-    try{const s=localStorage.getItem(STORAGE_KEY);if(s){const d=JSON.parse(s);if(d&&Array.isArray(d.products)&&Array.isArray(d.shopping)&&Array.isArray(d.history))return d}}catch(e){}
-    return sampleData()
+    try {
+      const s = localStorage.getItem(STORAGE_KEY);
+      if(s){
+        const d = JSON.parse(s);
+        if(d && Array.isArray(d.products) &&
+           Array.isArray(d.shopping) &&
+           Array.isArray(d.history)){
+          if(!Array.isArray(d.categories)){
+            d.categories = [...DEFAULT_CATEGORIES];
+          }
+          d.products.forEach(p=>{
+            if(!p.category) p.category = "Żywność";
+          });
+          return d;
+        }
+      }
+    } catch(e) {}
+    return sampleData();
   }
   function save(){
   try {
@@ -196,14 +239,61 @@ function syncShopping(p){
     $("statLow").textContent=data.products.filter(p=>p.qty<=p.min).length;
     $("statShopping").textContent=data.shopping.filter(i=>!i.done).length;
     $("productCount").textContent=data.products.length+" pozycji";
-    renderProducts();renderShopping();renderForecast();renderHistory();save()
+    renderCategories();renderProducts();renderShopping();renderForecast();renderHistory();save()
+  }
+  
+  function renderCategories(){
+    const root=$("categoryList");
+    if(!Array.isArray(data.categories)){
+      data.categories=[...DEFAULT_CATEGORIES];
+    }
+
+    root.innerHTML=data.categories.map(category=>`
+      <div class="row between" style="margin-top:8px">
+        <span>${esc(category)}</span>
+        <button class="small danger" type="button"
+          data-delete-category="${esc(category)}">Usuń</button>
+      </div>
+    `).join("");
+
+    const select=$("productCategory");
+    const selected=select.value;
+
+    select.innerHTML=data.categories.map(category=>
+      `<option value="${esc(category)}">${esc(category)}</option>`
+    ).join("");
+
+    if(data.categories.includes(selected)){
+      select.value=selected;
+    }
   }
   function renderProducts(){
     const root=$("productList");
-    if(!data.products.length){root.innerHTML='<p class="empty">Nie masz jeszcze produktów. Dodaj pierwszy powyżej.</p>';return}
-    root.innerHTML=data.products.map(p=>{
+    
+const filter=$("categoryFilter");
+filter.onchange=()=>renderProducts();
+const selectedCategory=filter.value;
+const categories=[...new Set([
+  ...(data.categories || []),
+  ...data.products.map(p=>p.category||"Żywność")
+])];
+filter.innerHTML='<option value="">Wszystkie kategorie</option>'+
+  categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+filter.value=selectedCategory;
+const products=selectedCategory
+  ? data.products.filter(p=>(p.category||"Żywność")===selectedCategory)
+  : data.products;
+    if(!products.length){
+  root.innerHTML='<p class="empty">'+
+    (selectedCategory
+      ? 'Brak produktów w wybranej kategorii.'
+      : 'Nie masz jeszcze produktów. Dodaj pierwszy powyżej.')+
+    '</p>';
+  return;
+}
+    root.innerHTML=products.map(p=>{
       const low=p.qty<=p.min,out=p.qty<=0,status=out?"Brak w magazynie":low?"Niski stan":"Zapas OK";
-      return `<article class="product"><div class="product-top"><div><h3>${esc(p.name)}</h3><span class="pill ${out?"out":low?"low":""}">${status}</span><p class="sub">Minimum: ${p.min} ${esc(p.unit)}</p></div><div class="qty">${p.qty} <small>${esc(p.unit)}</small></div></div><div class="actions"><button class="small" data-action="use" data-id="${p.id}">− Zużyto 1</button><button class="small secondary" data-action="add" data-id="${p.id}">+ Uzupełnij 1</button><button class="small ghost" data-action="edit" data-id="${p.id}">Edytuj</button><button class="small danger" data-action="delete" data-id="${p.id}">Usuń</button></div></article>`
+      return `<article class="product"><div class="product-top"><div><h3>${esc(p.name)}</h3><p class="sub">Kategoria: ${esc(p.category||"Żywność")}</p><span class="pill ${out?"out":low?"low":""}">${status}</span><p class="sub">Minimum: ${p.min} ${esc(p.unit)}</p></div><div class="qty">${p.qty} <small>${esc(p.unit)}</small></div></div><div class="actions"><button class="small" data-action="use" data-id="${p.id}">− Zużyto 1</button><button class="small secondary" data-action="add" data-id="${p.id}">+ Uzupełnij 1</button><button class="small ghost" data-action="edit" data-id="${p.id}">Edytuj</button><button class="small danger" data-action="delete" data-id="${p.id}">Usuń</button></div></article>`
     }).join("")
   }
   
@@ -278,8 +368,8 @@ function renderShopping(){
       const delta=a==="use"?-1:1;if(a==="use"&&p.qty<=0){alert("Stan produktu już wynosi zero.");return}
       p.qty=Math.max(0,Math.round((p.qty+delta)*10)/10);addHistory(a==="use"?"Zużyto":"Uzupełniono",p,delta);syncShopping(p);render()
     }else if(a==="edit"){
-      editingId=p.id;$("productName").value=p.name;$("productQty").value=p.qty;$("productMin").value=p.min;$("productUnit").value=p.unit;$("productCategory").value=p.category||"Żywność";
-      
+  renderCategories();
+  editingId=p.id;$("productName").value=p.name;$("productQty").value=p.qty;$("productMin").value=p.min;$("productUnit").value=p.unit;$("productCategory").value=p.category||"Żywność";
 }else if(a==="delete"){
       const phrase=prompt(
         `UWAGA! Usuniesz produkt „${p.name}” oraz jego aktywną pozycję na liście zakupów. Ta operacja wpłynie na oba telefony. Aby kontynuować, wpisz USUŃ.`
@@ -298,6 +388,45 @@ function renderShopping(){
     }
   });
   
+  $("addCategoryBtn").addEventListener("click",()=>{
+    const input=$("newCategory");
+    const name=input.value.trim();
+
+    if(!name){
+      alert("Wpisz nazwę kategorii.");
+      return;
+    }
+
+    if(!Array.isArray(data.categories)){
+      data.categories=[...DEFAULT_CATEGORIES];
+    }
+
+    if(data.categories.some(c=>c.toLowerCase()===name.toLowerCase())){
+      alert("Taka kategoria już istnieje.");
+      return;
+    }
+
+    data.categories.push(name);
+    input.value="";
+    render();
+  });
+  
+  $("categoryList").addEventListener("click",e=>{
+    const button=e.target.closest("button[data-delete-category]");
+    if(!button)return;
+
+    const category=button.dataset.deleteCategory;
+
+    if(data.products.some(p=>(p.category||"Żywność")===category)){
+      alert("Nie można usunąć tej kategorii, ponieważ są do niej przypisane produkty. Najpierw zmień ich kategorię.");
+      return;
+    }
+
+    if(!confirm(`Czy na pewno usunąć kategorię „${category}”?`))return;
+
+    data.categories=data.categories.filter(c=>c!==category);
+    render();
+  });
 $("tabToBuy").addEventListener("click",()=>{
     shoppingTab="todo";
     renderShopping();
@@ -471,25 +600,39 @@ $("saveStatus").textContent =
     render();
   });
     window.domowyMagazynApp = {
-    getData: () => JSON.parse(JSON.stringify(data)),
+    
+window.domowyMagazynApp = {
+  getData: () => JSON.parse(JSON.stringify(data)),
 
-    setData: (newData) => {
-      if (
-        !newData ||
-        !Array.isArray(newData.products) ||
-        !Array.isArray(newData.shopping) ||
-        !Array.isArray(newData.history)
-      ) {
-        throw new Error("Nieprawidłowe dane magazynu.");
+  setData: (newData) => {
+    if (
+      !newData ||
+      !Array.isArray(newData.products) ||
+      !Array.isArray(newData.shopping) ||
+      !Array.isArray(newData.history)
+    ) {
+      throw new Error("Nieprawidłowe dane magazynu.");
+    }
+
+    data = JSON.parse(JSON.stringify(newData));
+
+    if (!Array.isArray(data.categories)) {
+      data.categories = [...DEFAULT_CATEGORIES];
+    }
+
+    data.products.forEach(p => {
+      if (!p.category) {
+        p.category = "Żywność";
       }
 
-      data = JSON.parse(JSON.stringify(newData));
-      render();
-    }
-  };
+      if (!data.categories.includes(p.category)) {
+        data.categories.push(p.category);
+      }
+    });
 
-  render()
-})();
+    render();
+  }
+};
 </script>
 
 <script type="module">
