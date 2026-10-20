@@ -24,8 +24,31 @@
   </style>
 </head>
 <body>
-<header><h1>🏠 Domowy Magazyn</h1><p>Wiesz, co masz. Wiesz, czego brakuje.</p></header>
-<main>
+<header>
+  <h1>🏠 Domowy Magazyn</h1>
+  <p>Wiesz, co masz. Wiesz, czego brakuje.</p>
+</header>
+
+<main id="loginPanel">
+  <section class="panel wide">
+    <h2>🔐 Zaloguj się do magazynu</h2>
+    <form id="loginForm">
+      <div>
+        <label for="loginEmail">Adres e-mail</label>
+        <input id="loginEmail" type="email" autocomplete="username"
+          placeholder="Twój adres e-mail" required>
+      </div>
+      <div style="margin-top:10px">
+        <label for="loginPassword">Hasło</label>
+        <input id="loginPassword" type="password"
+          autocomplete="current-password" placeholder="Hasło" required>
+      </div>
+      <div style="margin-top:12px">
+        <button type="submit">Zaloguj się</button>
+      </div>
+      <p id="loginStatus" class="note" aria-live="polite"></p>
+    </form>
+  </section>
   <section class="stats">
     <div class="stat"><strong id="statProducts">0</strong><span>Produkty</span></div>
     <div class="stat"><strong id="statLow">0</strong><span>Niski stan</span></div>
