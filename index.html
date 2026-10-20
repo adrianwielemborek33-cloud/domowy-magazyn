@@ -867,8 +867,7 @@ window.domowyMagazynApp = {
       console.error("Nie udało się uruchomić synchronizacji:", error);
       loginPanel.classList.remove("hidden");
       appMain.classList.add("hidden");
-      loginStatus.textContent =
-        "Nie udało się wczytać wspólnego magazynu. Sprawdź połączenie i reguły Firestore, a następnie odśwież stronę.";
+      loginStatus.textContent = "Błąd: " + (error.code || error.message || "Nieznany błąd");
     }
   });
 </script>
