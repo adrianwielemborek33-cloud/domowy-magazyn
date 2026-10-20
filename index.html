@@ -200,9 +200,22 @@
       p.qty=Math.max(0,Math.round((p.qty+delta)*10)/10);addHistory(a==="use"?"Zużyto":"Uzupełniono",p,delta);syncShopping(p);render()
     }else if(a==="edit"){
       editingId=p.id;$("productName").value=p.name;$("productQty").value=p.qty;$("productMin").value=p.min;$("productUnit").value=p.unit;
-      $("formTitle").textContent="✏️ Edytuj produkt";$("saveProduct").textContent="Zapisz zmiany";$("cancelEdit").classList.remove("hidden");$("productName").focus();window.scrollTo({top:0,behavior:"smooth"})
-    }else if(a==="delete"&&confirm(`Usunąć produkt „${p.name}” i jego aktywną pozycję na liście zakupów?`)){
-      data.products=data.products.filter(x=>x.id!==p.id);data.shopping=data.shopping.filter(i=>i.productId!==p.id);addHistory("Usunięto",p,0);render()
+      
+}else if(a==="delete"){
+      const phrase=prompt(
+        `UWAGA! Usuniesz produkt „${p.name}” oraz jego aktywną pozycję na liście zakupów. Ta operacja wpłynie na oba telefony. Aby kontynuować, wpisz USUŃ.`
+      );
+      if(phrase!=="USUŃ"){
+        alert("Anulowano. Produkt nie został usunięty.");
+        return;
+      }
+      if(!confirm(`Ostatnie ostrzeżenie: czy na pewno usunąć produkt „${p.name}”?`)){
+        return;
+      }
+      data.products=data.products.filter(x=>x.id!==p.id);
+      data.shopping=data.shopping.filter(i=>i.productId!==p.id);
+      addHistory("Usunięto",p,0);
+      render()
     }
   });
   $("shoppingList").addEventListener("change",e=>{
