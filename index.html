@@ -142,14 +142,95 @@
   function makeId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
   function esc(v){return String(v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
   function now(){return new Date().toISOString()}
-  function sampleData(){
+  
+const DEFAULT_CATEGORIES = [
+  "Żywność",
+  "Napoje",
+  "Chemia gospodarcza",
+  "Higiena i kosmetyki",
+  "Dziecko",
+  "Zwierzęta",
+  "Dom i inne"
+];
+
+function sampleData(){
+  const rows=[
+    ["Mleko",2,1,"szt.","Żywność"],
+    ["Jajka",6,4,"szt.","Żywność"],
+    ["Chleb",1,1,"szt.","Żywność"],
+    ["Makaron",3,1,"opak.","Żywność"],
+    ["Ryż",2,1,"opak.","Żywność"],
+    ["Olej",1,1,"l","Żywność"],
+    ["Papier toaletowy",4,2,"rol.","Higiena i kosmetyki"],
+    ["Płyn do naczyń",1,1,"szt.","Chemia gospodarcza"],
+    ["Karma dla zwierząt",2,1,"opak.","Zwierzęta"],
+    ["Proszek do prania",1,1,"opak.","Chemia gospodarcza"]
+  ];
+
+  return {
+    products: rows.map(([name,qty,min,unit,category])=>({
+      id:makeId(),
+      name,
+      qty,
+      min,
+      unit,
+      category,
+      createdAt:now()
+    })),
+    categories:[...DEFAULT_CATEGORIES],
+    shopping:[],
+    history:[]
+  };
+}
     const rows=[["Mleko",2,1,"szt."],["Jajka",6,4,"szt."],["Chleb",1,1,"szt."],["Makaron",3,1,"opak."],["Ryż",2,1,"opak."],["Olej",1,1,"l"],["Papier toaletowy",4,2,"rol."],["Płyn do naczyń",1,1,"szt."],["Karma dla zwierząt",2,1,"opak."],["Proszek do prania",1,1,"opak."]];
     return {products:rows.map(([name,qty,min,unit])=>({id:makeId(),name,qty,min,unit,createdAt:now()})),shopping:[],history:[]}
   }
-  function loadData(){
-    try{const s=localStorage.getItem(STORAGE_KEY);if(s){const d=JSON.parse(s);if(d&&Array.isArray(d.products)&&Array.isArray(d.shopping)&&Array.isArray(d.history))return d}}catch(e){}
-    return sampleData()
+  
+function loadData(){
+  try {
+    const s = localStorage.getItem(STORAGE_KEY);
+
+    if (s) {
+      const d = JSON.parse(s);
+
+      if (
+        d &&
+        Array.isArray(d.products) &&
+        Array.isArray(d.shopping) &&
+        Array.isArray(d.history)
+      ) {
+        if (!Array.isArray(d.categories)) {
+          d.categories = [...DEFAULT_CATEGORIES];
+        }
+
+        d.categories = [
+          ...new Set([
+            ...DEFAULT_CATEGORIES,
+            ...d.categories.filter(
+              c => typeof c === "string" && c.trim()
+            ).map(c => c.trim())
+          ])
+        ];
+
+        d.products.forEach(p => {
+          if (!p.category) {
+            p.category = "Dom i inne";
+          }
+
+          if (!d.categories.includes(p.category)) {
+            d.categories.push(p.category);
+          }
+        });
+
+        return d;
+      }
+    }
+  } catch(e) {
+    console.error("Nie udało się wczytać danych lokalnych:", e);
   }
+
+  return sampleData();
+}
   function save(){
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
