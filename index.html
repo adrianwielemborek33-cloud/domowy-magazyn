@@ -176,5 +176,35 @@
   render()
 })();
 </script>
+<script type="module">
+  import { initializeApp }
+    from "https://www.gstatic.com/firebasejs/12.10.0/firebase-app.js";
+
+  import { getAuth }
+    from "https://www.gstatic.com/firebasejs/12.10.0/firebase-auth.js";
+
+  import { getFirestore }
+    from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCSs5tKjCotgz2LRy8AGb6z1VVQtrVOcbs",
+    authDomain: "domowy-magazyn-ec707.firebaseapp.com",
+    projectId: "domowy-magazyn-ec707",
+    appId: "1:433221807431:web:47de641bd70fbfaf8d7062"
+  };
+
+  const firebaseApp = initializeApp(firebaseConfig);
+  const firebaseAuth = getAuth(firebaseApp);
+  const firebaseDb = getFirestore(firebaseApp);
+
+  // Udostępniamy połączenie do dalszego podłączenia aplikacji.
+  window.domowyMagazynFirebase = {
+    app: firebaseApp,
+    auth: firebaseAuth,
+    db: firebaseDb
+  };
+
+  console.log("Firebase został zainicjalizowany.");
+</script>
 </body>
 </html>
