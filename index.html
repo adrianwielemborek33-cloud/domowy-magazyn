@@ -73,11 +73,28 @@
     <div class="row between"><h2>📦 Produkty</h2><span class="sub" id="productCount"></span></div>
     <div id="productList" class="product-list"></div>
   </section>
-  <section class="panel">
-    <div class="row between"><h2>🛒 Lista zakupów</h2><button id="clearDone" class="ghost small" type="button">Usuń kupione</button></div>
-    <div id="shoppingList" class="shopping-list"></div>
-    <p class="note">Zaznaczenie zakupu nie zmienia stanu magazynowego. Po uzupełnieniu produktu zaktualizuj jego stan osobno.</p>
-  </section>
+  
+<section class="panel">
+  <div class="row between">
+    <h2>🛒 Lista zakupów</h2>
+  </div>
+
+  <div class="row" style="margin-bottom:12px">
+    <button id="tabToBuy" class="small" type="button">Do kupienia</button>
+    <button id="tabBought" class="secondary small" type="button">Kupione</button>
+  </div>
+
+  <div id="shoppingList" class="shopping-list"></div>
+
+  <div class="row" style="margin-top:12px">
+    <button id="shoppingBulkAction" type="button">Kup zaznaczone</button>
+  </div>
+
+  <p class="note">
+    Po zakupie przenieś produkt do zakładki „Kupione”.
+    Po uzupełnieniu zapasu potwierdź to, aby zaktualizować magazyn.
+  </p>
+</section>
   <section class="panel"><h2>📈 Prognoza zużycia</h2><div id="forecastList"></div><p class="note">Prognozy są orientacyjne i stają się dokładniejsze, gdy aplikacja zbierze historię zużycia.</p></section>
   <section class="panel">
     <div class="row between"><h2>🕘 Historia zmian</h2><button id="clearHistory" class="ghost small" type="button">Wyczyść historię</button></div>
