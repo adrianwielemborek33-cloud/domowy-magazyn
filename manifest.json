@@ -1,1 +1,14 @@
 
+{
+  "id": "/domowy-magazyn/",
+  "name": "Domowy Magazyn",
+  "short_name": "Magazyn",
+  "description": "Wspólny magazyn domowy i lista zakupów",
+  "lang": "pl",
+  "start_url": "/domowy-magazyn/",
+  "scope": "/domowy-magazyn/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#2563eb",
+  "background_color": "#f8fafc"
+}
