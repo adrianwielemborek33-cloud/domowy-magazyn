@@ -119,6 +119,7 @@
   const STORAGE_KEY="domowy-magazyn-v1";
   const $=id=>document.getElementById(id);
   let editingId=null;
+  let shoppingTab="todo";
   let data=loadData();
 
   function makeId(){return Date.now().toString(36)+Math.random().toString(36).slice(2,8)}
