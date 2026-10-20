@@ -257,11 +257,11 @@ function renderShopping(){
   function resetForm(){editingId=null;$("productForm").reset();$("productQty").value="1";$("productMin").value="1";$("formTitle").textContent="➕ Dodaj produkt";$("saveProduct").textContent="Dodaj produkt";$("cancelEdit").classList.add("hidden")}
   $("productForm").addEventListener("submit",e=>{
     e.preventDefault();
-    const name=$("productName").value.trim(),qty=Number($("productQty").value),min=Number($("productMin").value),unit=$("productUnit").value;
+    const name=$("productName").value.trim(),qty=Number($("productQty").value),min=Number($("productMin").value),unit=$("productUnit").value,category=$("productCategory").value;
     if(!name||!Number.isFinite(qty)||!Number.isFinite(min)||qty<0||min<0){alert("Sprawdź nazwę, stan i minimum.");return}
     if(editingId){
       const p=data.products.find(x=>x.id===editingId);if(!p)return;
-      p.name=name;p.qty=qty;p.min=min;p.unit=unit;
+      p.name=name;p.qty=qty;p.min=min;p.unit=unit;p.category=category;
       data.shopping.forEach(i=>{if(i.productId===p.id&&!i.done){i.name=name;i.unit=unit}});
       addHistory("Edytowano",p,0);syncShopping(p)
     }else{
