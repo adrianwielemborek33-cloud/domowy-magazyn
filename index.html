@@ -280,14 +280,105 @@ function renderShopping(){
       render()
     }
   });
-  $("shoppingList").addEventListener("change",e=>{
-    const box=e.target.closest("input[data-shopping]");if(!box)return;
-    const item=data.shopping.find(i=>i.id===box.dataset.shopping);if(!item)return;
-    item.done=box.checked;const p=data.products.find(x=>x.id===item.productId);if(p)addHistory(box.checked?"Oznaczono jako kupione":"Przywrócono na listę",p,0);render()
-  });
-  $("shoppingList").addEventListener("click",e=>{const b=e.target.closest("button[data-remove-shopping]");if(b){data.shopping=data.shopping.filter(i=>i.id!==b.dataset.removeShopping);render()}});
-  $("clearDone").addEventListener("click",()=>{data.shopping=data.shopping.filter(i=>!i.done);render()});
-  $("clearHistory").addEventListener("click",()=>{if(confirm("Wyczyścić całą historię zmian?")){data.history=[];render()}});
+  
+$("tabToBuy").addEventListener("click",()=>{
+    shoppingTab="todo";
+    renderShopping();
+});
+
+$("tabBought").addEventListener("click",()=>{
+    shoppingTab="bought";
+    renderShopping();
+});
+
+function completeReplenishment(ids){
+    const items=data.shopping.filter(i=>ids.includes(i.id)&&i.done);
+    if(!items.length)return;
+
+    const message=items.length===1
+        ? `Czy uzupełniłeś stan produktu „${items[0].name}”?`
+        : `Czy uzupełniłeś stan wszystkich ${items.length} zaznaczonych produktów?`;
+
+    if(!confirm(message))return;
+
+    for(const item of items){
+        const p=data.products.find(x=>x.id===item.productId);
+        if(p){
+            const qty=Math.max(1,Math.floor(Number(item.boughtQty)||1));
+            p.qty=Math.round((p.qty+qty)*10)/10;
+            addHistory("Uzupełniono po zakupie",p,qty);
+        }
+    }
+
+    const completedIds=new Set(items.map(i=>i.id));
+    data.shopping=data.shopping.filter(i=>!completedIds.has(i.id));
+    render();
+}
+
+$("shoppingList").addEventListener("click",e=>{
+    const minus=e.target.closest("button[data-qty-minus]");
+    const plus=e.target.closest("button[data-qty-plus]");
+    const action=e.target.closest("button[data-shopping-action]");
+
+    if(minus||plus){
+        const id=(minus||plus).dataset.qtyMinus||(minus||plus).dataset.qtyPlus;
+        const item=data.shopping.find(i=>i.id===id);
+        if(!item)return;
+        const current=Math.max(1,Math.floor(Number(item.boughtQty)||1));
+        item.boughtQty=Math.max(1,current+(plus?1:-1));
+        renderShopping();
+        save();
+        return;
+    }
+
+    if(!action)return;
+    const item=data.shopping.find(i=>i.id===action.dataset.shoppingAction);
+    if(!item)return;
+
+    if(!item.done){
+        item.done=true;
+        item.boughtQty=Math.max(1,Math.floor(Number(item.boughtQty)||1));
+        const p=data.products.find(x=>x.id===item.productId);
+        if(p)addHistory("Przeniesiono do kupionych",p,0);
+        render();
+    }else{
+        completeReplenishment([item.id]);
+    }
+});
+
+$("shoppingList").addEventListener("change",e=>{
+    const input=e.target.closest("input[data-bought-qty]");
+    if(!input)return;
+    const item=data.shopping.find(i=>i.id===input.dataset.boughtQty);
+    if(!item)return;
+    item.boughtQty=Math.max(1,Math.floor(Number(input.value)||1));
+    input.value=item.boughtQty;
+    save();
+});
+
+$("shoppingBulkAction").addEventListener("click",()=>{
+    const ids=[...$("shoppingList").querySelectorAll("input[data-select-shopping]:checked")]
+        .map(input=>input.dataset.selectShopping);
+
+    if(!ids.length){
+        alert("Najpierw zaznacz przynajmniej jeden produkt.");
+        return;
+    }
+
+    if(shoppingTab==="todo"){
+        for(const item of data.shopping){
+            if(ids.includes(item.id)&&!item.done){
+                item.done=true;
+                item.boughtQty=Math.max(1,Math.floor(Number(item.boughtQty)||1));
+                const p=data.products.find(x=>x.id===item.productId);
+                if(p)addHistory("Przeniesiono do kupionych",p,0);
+            }
+        }
+        render();
+    }else{
+        completeReplenishment(ids);
+    }
+});
   $("exportData").addEventListener("click",()=>{
     const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");
     a.href=url;a.download="domowy-magazyn-kopia.json";a.click();URL.revokeObjectURL(url)
