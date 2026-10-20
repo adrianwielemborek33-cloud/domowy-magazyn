@@ -86,33 +86,7 @@
     </form>
     <p class="note">Gdy stan osiągnie minimum lub spadnie poniżej niego, produkt trafi na listę zakupów.</p>
   </section>
-<section class="panel wide">
-  <div class="row between">
-    <h2>🗂️ Zarządzaj kategoriami</h2>
-  </div>
-  <form id="categoryForm">
-    <label for="newCategoryName">Nazwa nowej kategorii</label>
-    <div class="row">
-      <div style="flex:1;min-width:180px">
-        <input
-          id="newCategoryName"
-          maxlength="40"
-          placeholder="np. Ogród"
-          required
-        >
-      </div>
-      <button type="submit">Dodaj kategorię</button>
-    </div>
-  </form>
 
-  <div id="categoryList" class="product-list"
-       style="margin-top:12px"></div>
-
-  <p class="note">
-    Kategorie są wspólne dla zalogowanych domowników.
-    Przy usuwaniu kategorii przypiszesz jej produkty do innej kategorii.
-  </p>
-</section>
   <section class="panel">
     <div class="row between"><h2>📦 Produkty</h2><span class="sub" id="productCount"></span></div>
     <div id="productList" class="product-list"></div>
