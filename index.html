@@ -131,11 +131,29 @@
   }
 }
   function addHistory(action,p,delta){data.history.unshift({id:makeId(),at:now(),action,productName:p.name,delta,qty:p.qty,unit:p.unit});data.history=data.history.slice(0,100)}
-  function syncShopping(p){
+  
+function syncShopping(p){
     const active=data.shopping.find(i=>i.productId===p.id&&!i.done);
-    if(p.qty<=p.min){if(!active)data.shopping.unshift({id:makeId(),productId:p.id,name:p.name,unit:p.unit,done:false,addedAt:now()});else{active.name=p.name;active.unit=p.unit}}
-    else data.shopping=data.shopping.filter(i=>!(i.productId===p.id&&!i.done))
-  }
+    const alreadyBought=data.shopping.some(i=>i.productId===p.id&&i.done);
+
+    if(p.qty<=p.min){
+      if(!active&&!alreadyBought){
+        data.shopping.unshift({
+          id:makeId(),
+          productId:p.id,
+          name:p.name,
+          unit:p.unit,
+          done:false,
+          addedAt:now()
+        });
+      }else if(active){
+        active.name=p.name;
+        active.unit=p.unit;
+      }
+    }else{
+      data.shopping=data.shopping.filter(i=>!(i.productId===p.id&&!i.done));
+    }
+}
   function fmtDate(v){try{return new Date(v).toLocaleString("pl-PL",{day:"2-digit",month:"2-digit",hour:"2-digit",minute:"2-digit"})}catch(e){return ""}}
   function render(){
     data.products.forEach(syncShopping);
