@@ -718,5 +718,15 @@ $("saveStatus").textContent =
     }
   });
 </script>
+  
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./service-worker.js")
+      .then(() => console.log("Domowy Magazyn: PWA uruchomione"))
+      .catch(error => console.error("Błąd PWA:", error));
+  });
+}
+</script>
 </body>
 </html>
