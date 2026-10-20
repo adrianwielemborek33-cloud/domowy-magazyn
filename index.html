@@ -188,11 +188,37 @@ function syncShopping(p){
       return `<article class="product"><div class="product-top"><div><h3>${esc(p.name)}</h3><span class="pill ${out?"out":low?"low":""}">${status}</span><p class="sub">Minimum: ${p.min} ${esc(p.unit)}</p></div><div class="qty">${p.qty} <small>${esc(p.unit)}</small></div></div><div class="actions"><button class="small" data-action="use" data-id="${p.id}">− Zużyto 1</button><button class="small secondary" data-action="add" data-id="${p.id}">+ Uzupełnij 1</button><button class="small ghost" data-action="edit" data-id="${p.id}">Edytuj</button><button class="small danger" data-action="delete" data-id="${p.id}">Usuń</button></div></article>`
     }).join("")
   }
-  function renderShopping(){
+  
+function renderShopping(){
     const root=$("shoppingList");
-    if(!data.shopping.length){root.innerHTML='<p class="empty">Lista zakupów jest pusta. Produkty poniżej minimum pojawią się tutaj automatycznie.</p>';return}
-    root.innerHTML=data.shopping.map(i=>`<div class="shopping-item ${i.done?"done":""}"><input type="checkbox" data-shopping="${i.id}" ${i.done?"checked":""} aria-label="Oznacz ${esc(i.name)} jako kupione"><div class="item-name"><strong>${esc(i.name)}</strong><div class="sub">${esc(i.unit)} · dodano ${fmtDate(i.addedAt)}</div></div><button class="small ghost" data-remove-shopping="${i.id}" type="button">Usuń</button></div>`).join("")
-  }
+    const items=data.shopping.filter(i=>shoppingTab==="bought"?i.done:!i.done);
+
+    $("tabToBuy").classList.toggle("secondary",shoppingTab!=="todo");
+    $("tabBought").classList.toggle("secondary",shoppingTab!=="bought");
+    $("shoppingBulkAction").textContent=shoppingTab==="todo"?"Kup zaznaczone":"Uzupełnij zaznaczone";
+
+    if(!items.length){
+        root.innerHTML=`<p class="empty">${shoppingTab==="todo"?"Lista zakupów jest pusta. Produkty poniżej minimum pojawią się tutaj automatycznie.":"Nie ma produktów oczekujących na uzupełnienie."}</p>`;
+        return;
+    }
+
+    root.innerHTML=items.map(i=>{
+        const qty=Math.max(1,Math.floor(Number(i.boughtQty)||1));
+        return `<div class="shopping-item">
+            <input type="checkbox" data-select-shopping="${i.id}" aria-label="Zaznacz ${esc(i.name)}">
+            <div class="item-name">
+                <strong>${esc(i.name)}</strong>
+                <div class="sub">${esc(i.unit)} · dodano ${fmtDate(i.addedAt)}</div>
+                ${i.done?`<div class="row" style="margin-top:6px;gap:6px">
+                    <button class="small ghost" type="button" data-qty-minus="${i.id}">−</button>
+                    <input type="number" min="1" step="1" value="${qty}" data-bought-qty="${i.id}" aria-label="Kupiona ilość produktu ${esc(i.name)}" style="width:76px">
+                    <button class="small ghost" type="button" data-qty-plus="${i.id}">+</button>
+                </div>`:""}
+            </div>
+            <button class="small" type="button" data-shopping-action="${i.id}">${i.done?"Uzupełnij":"Kup"}</button>
+        </div>`;
+    }).join("");
+}
   function renderForecast(){
     const root=$("forecastList");
     if(!data.products.length){root.innerHTML='<p class="empty">Dodaj produkty, aby zobaczyć prognozę.</p>';return}
