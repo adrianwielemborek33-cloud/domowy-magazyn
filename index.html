@@ -265,8 +265,8 @@ function renderShopping(){
       data.shopping.forEach(i=>{if(i.productId===p.id&&!i.done){i.name=name;i.unit=unit}});
       addHistory("Edytowano",p,0);syncShopping(p)
     }else{
-      const p={id:makeId(),name,qty,min,unit,createdAt:now()};data.products.push(p);addHistory("Dodano",p,0);syncShopping(p)
-    }
+      const p={id:makeId(),name,qty,min,unit,category,createdAt:now()};data.products.push(p);addHistory("Dodano",p,0);syncShopping(p)
+  }
     resetForm();render()
   });
   $("cancelEdit").addEventListener("click",resetForm);
