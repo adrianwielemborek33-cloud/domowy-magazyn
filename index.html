@@ -266,7 +266,27 @@ $("saveStatus").textContent =
       event.target.value = "";
     }
   });
-  $("resetDemo").addEventListener("click",()=>{if(confirm("To zastąpi bieżące dane przykładowymi produktami. Czy na pewno?")){data=sampleData();resetForm();render()}});
+  
+  $("resetDemo").addEventListener("click", () => {
+    const phrase = prompt(
+      "UWAGA! Zastąpisz wspólny magazyn przykładowymi danymi na obu telefonach. Przed kontynuacją upewnij się, że masz aktualną kopię zapasową. Aby kontynuować, wpisz RESET."
+    );
+
+    if (phrase !== "RESET") {
+      alert("Anulowano. Dane nie zostały zmienione.");
+      return;
+    }
+
+    if (!confirm(
+      "Ostatnie ostrzeżenie: obecne produkty, zakupy i historia zostaną zastąpione. Kontynuować?"
+    )) {
+      return;
+    }
+
+    data = sampleData();
+    resetForm();
+    render();
+  });
     window.domowyMagazynApp = {
     getData: () => JSON.parse(JSON.stringify(data)),
 
