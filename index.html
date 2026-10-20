@@ -278,7 +278,7 @@ function renderShopping(){
       const delta=a==="use"?-1:1;if(a==="use"&&p.qty<=0){alert("Stan produktu już wynosi zero.");return}
       p.qty=Math.max(0,Math.round((p.qty+delta)*10)/10);addHistory(a==="use"?"Zużyto":"Uzupełniono",p,delta);syncShopping(p);render()
     }else if(a==="edit"){
-      editingId=p.id;$("productName").value=p.name;$("productQty").value=p.qty;$("productMin").value=p.min;$("productUnit").value=p.unit;
+      editingId=p.id;$("productName").value=p.name;$("productQty").value=p.qty;$("productMin").value=p.min;$("productUnit").value=p.unit;$("productCategory").value=p.category||"Żywność";
       
 }else if(a==="delete"){
       const phrase=prompt(
