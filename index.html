@@ -86,7 +86,13 @@
   <section class="panel wide">
     <h2>⚙️ Dane aplikacji</h2>
     <p class="note">Wersja testowa: dane zapisują się tylko w tej przeglądarce na tym urządzeniu. Nie są jeszcze współdzielone z innymi domownikami.</p>
-    <div class="row" style="margin-top:10px"><button id="exportData" class="secondary" type="button">Eksportuj kopię danych</button><button id="resetDemo" class="danger" type="button">Przywróć przykładowe dane</button></div>
+    
+<div class="row" style="margin-top:10px">
+  <button id="exportData" class="secondary" type="button">Eksportuj kopię danych</button>
+  <button id="importData" class="secondary" type="button">Przywróć kopię zapasową</button>
+  <input id="importFile" type="file" accept=".json,application/json" hidden>
+  <button id="resetDemo" class="danger" type="button">Przywróć przykładowe dane</button>
+</div>
     <p class="note" id="saveStatus" aria-live="polite"></p>
   </section>
 </main>
@@ -211,6 +217,55 @@
     const blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"}),url=URL.createObjectURL(blob),a=document.createElement("a");
     a.href=url;a.download="domowy-magazyn-kopia.json";a.click();URL.revokeObjectURL(url)
   });
+  
+  $("importData").addEventListener("click", () => {
+    $("importFile").click();
+  });
+
+  $("importFile").addEventListener("change", async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    try {
+      const text = await file.text();
+      const importedData = JSON.parse(text);
+
+      if (
+        !importedData ||
+        !Array.isArray(importedData.products) ||
+        !Array.isArray(importedData.shopping) ||
+        !Array.isArray(importedData.history)
+      ) {
+        throw new Error("Nieprawidłowy format kopii.");
+      }
+
+      const confirmed = confirm(
+        "Przywrócenie kopii zastąpi aktualne dane wspólnego magazynu na obu telefonach. Czy masz pewność, że chcesz kontynuować?"
+      );
+
+      if (!confirmed) return;
+
+      if (!window.domowyMagazynApp) {
+        throw new Error("Aplikacja nie jest gotowa.");
+      }
+
+      if (!window.domowyMagazynFirebaseRestore) {
+  throw new Error("Brak funkcji zapisu do chmury.");
+}
+
+await window.domowyMagazynFirebaseRestore(importedData);
+
+$("saveStatus").textContent =
+  "Kopia przywrócona i zapisana w chmurze.";
+    } catch (error) {
+      console.error("Błąd przywracania kopii:", error);
+      alert(
+        "Nie udało się przywrócić kopii. Sprawdź, czy wybrano prawidłowy plik JSON."
+      );
+    } finally {
+      event.target.value = "";
+    }
+  });
   $("resetDemo").addEventListener("click",()=>{if(confirm("To zastąpi bieżące dane przykładowymi produktami. Czy na pewno?")){data=sampleData();resetForm();render()}});
     window.domowyMagazynApp = {
     getData: () => JSON.parse(JSON.stringify(data)),
@@ -284,6 +339,37 @@
     "data",
     "current"
   );
+  
+  window.domowyMagazynFirebaseRestore = async function(importedData) {
+    const user = firebaseAuth.currentUser;
+
+    if (!user) {
+      throw new Error("Najpierw zaloguj się do magazynu.");
+    }
+
+    if (
+      !importedData ||
+      !Array.isArray(importedData.products) ||
+      !Array.isArray(importedData.shopping) ||
+      !Array.isArray(importedData.history)
+    ) {
+      throw new Error("Plik kopii ma nieprawidłowy format.");
+    }
+
+    await setDoc(sharedDataRef, {
+      payload: importedData,
+      updatedBy: user.uid,
+      updatedAt: serverTimestamp()
+    });
+
+    window.domowyMagazynApplyingRemote = true;
+
+    try {
+      window.domowyMagazynApp.setData(importedData);
+    } finally {
+      window.domowyMagazynApplyingRemote = false;
+    }
+  };
 
   let unsubscribeData = null;
   let syncReady = false;
