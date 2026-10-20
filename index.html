@@ -109,7 +109,21 @@
     try{const s=localStorage.getItem(STORAGE_KEY);if(s){const d=JSON.parse(s);if(d&&Array.isArray(d.products)&&Array.isArray(d.shopping)&&Array.isArray(d.history))return d}}catch(e){}
     return sampleData()
   }
-  function save(){try{localStorage.setItem(STORAGE_KEY,JSON.stringify(data));$("saveStatus").textContent="Dane zapisane na tym urządzeniu."}catch(e){$("saveStatus").textContent="Nie udało się zapisać danych. Sprawdź pamięć przeglądarki."}}
+  function save(){
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    $("saveStatus").textContent = "Dane zapisane na tym urządzeniu.";
+
+    if (!window.domowyMagazynApplyingRemote) {
+      window.dispatchEvent(new CustomEvent("domowy-magazyn-local-change", {
+        detail: JSON.parse(JSON.stringify(data))
+      }));
+    }
+  } catch(e) {
+    $("saveStatus").textContent =
+      "Nie udało się zapisać danych. Sprawdź pamięć przeglądarki.";
+  }
+}
   function addHistory(action,p,delta){data.history.unshift({id:makeId(),at:now(),action,productName:p.name,delta,qty:p.qty,unit:p.unit});data.history=data.history.slice(0,100)}
   function syncShopping(p){
     const active=data.shopping.find(i=>i.productId===p.id&&!i.done);
@@ -198,6 +212,24 @@
     a.href=url;a.download="domowy-magazyn-kopia.json";a.click();URL.revokeObjectURL(url)
   });
   $("resetDemo").addEventListener("click",()=>{if(confirm("To zastąpi bieżące dane przykładowymi produktami. Czy na pewno?")){data=sampleData();resetForm();render()}});
+    window.domowyMagazynApp = {
+    getData: () => JSON.parse(JSON.stringify(data)),
+
+    setData: (newData) => {
+      if (
+        !newData ||
+        !Array.isArray(newData.products) ||
+        !Array.isArray(newData.shopping) ||
+        !Array.isArray(newData.history)
+      ) {
+        throw new Error("Nieprawidłowe dane magazynu.");
+      }
+
+      data = JSON.parse(JSON.stringify(newData));
+      render();
+    }
+  };
+
   render()
 })();
 </script>
