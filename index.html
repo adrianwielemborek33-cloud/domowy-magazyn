@@ -69,6 +69,18 @@
         <div><label for="productQty">Aktualny stan</label><input id="productQty" type="number" min="0" step="0.1" value="1" required></div>
         <div><label for="productMin">Minimalny zapas</label><input id="productMin" type="number" min="0" step="0.1" value="1" required></div>
         <div><label for="productUnit">Jednostka</label><select id="productUnit"><option value="szt.">szt.</option><option value="opak.">opak.</option><option value="l">l</option><option value="kg">kg</option><option value="rol.">rol.</option></select></div>
+      <div>
+  <label for="productCategory">Kategoria</label>
+  <select id="productCategory">
+    <option value="Żywność">Żywność</option>
+    <option value="Napoje">Napoje</option>
+    <option value="Chemia gospodarcza">Chemia gospodarcza</option>
+    <option value="Higiena i kosmetyki">Higiena i kosmetyki</option>
+    <option value="Dziecko">Dziecko</option>
+    <option value="Zwierzęta">Zwierzęta</option>
+    <option value="Dom i inne">Dom i inne</option>
+  </select>
+      </div>
       </div>
       <div class="row" style="margin-top:12px"><button id="saveProduct" type="submit">Dodaj produkt</button></div>
     </form>
