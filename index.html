@@ -346,7 +346,35 @@ $("productForm").addEventListener("submit",e=>{
     resetForm();
     render();
 });
-  $("categoryFilter").addEventListener("change",renderProducts);
+  $("categoryFilter").addEventListener("change",renderProducts); 
+$("manageCategories").addEventListener("click",()=>{
+  const categories=[...new Set(
+    data.products.map(p=>(p.category||"Żywność").trim()).filter(Boolean)
+  )].sort((a,b)=>a.localeCompare(b,"pl"));
+
+  const current=categories.join("\n");
+  const answer=prompt(
+    "Kategorie produktów — każda w osobnym wierszu.\n"+
+    "Możesz zmienić nazwy lub dodać nowe.\n"+
+    "Uwaga: nie usuwaj kategorii, jeśli chcesz zachować jej przypisanie do produktów.",
+    current
+  );
+
+  if(answer===null)return;
+
+  const updated=answer.split("\n")
+    .map(c=>c.trim())
+    .filter(Boolean);
+
+  if(!updated.length){
+    alert("Pozostaw przynajmniej jedną kategorię.");
+    return;
+  }
+
+  alert(
+    "Lista kategorii została odczytana. W następnym kroku połączymy ją z produktami."
+  );
+});
   $("cancelEdit").addEventListener("click",resetForm);
   $("productList").addEventListener("click",e=>{
     const b=e.target.closest("button[data-action]");if(!b)return;
