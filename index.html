@@ -68,8 +68,28 @@
         <div class="full"><label for="productName">Nazwa produktu</label><input id="productName" maxlength="70" placeholder="np. Mleko" required></div>
         <div><label for="productQty">Aktualny stan</label><input id="productQty" type="number" min="0" step="0.1" value="1" required></div>
         <div><label for="productMin">Minimalny zapas</label><input id="productMin" type="number" min="0" step="0.1" value="1" required></div>
-        <div><label for="productUnit">Jednostka</label><select id="productUnit"><option value="szt.">szt.</option><option value="opak.">opak.</option><option value="l">l</option><option value="kg">kg</option><option value="rol.">rol.</option></select></div>
-      <div>
+        
+<div>
+  <label for="productUnit">Jednostka</label>
+  <div id="unitPicker" style="position:relative">
+    <button type="button" id="unitToggle" class="secondary"
+      style="width:100%;display:flex;align-items:center;justify-content:space-between;text-align:left;padding:12px;border:1px solid #ccc;border-radius:8px;background:white;color:#222">
+      <span id="unitSelectedLabel">szt.</span>
+      <span id="unitArrow">▼</span>
+    </button>
+    <div id="unitOptions"
+      style="display:none;max-height:180px;overflow-y:auto;border:1px solid #ccc;border-radius:8px;margin-top:4px;padding:4px;background:white">
+    </div>
+    <select id="productUnit" style="display:none">
+      <option value="szt.">szt.</option>
+      <option value="opak.">opak.</option>
+      <option value="l">l</option>
+      <option value="kg">kg</option>
+      <option value="rol.">rol.</option>
+    </select>
+  </div>
+</div>
+<div>
  <label for="productCategory">Kategoria</label>
 <div id="categoryPicker" style="position:relative;margin-bottom:10px">
   <button type="button" id="categoryToggle" class="secondary"
@@ -308,6 +328,9 @@ function resetForm(){
   if(typeof refreshProductCategories==="function"){
     refreshProductCategories();
   }
+  if(typeof refreshProductUnits==="function"){
+  refreshProductUnits();
+  }
 }
 
 
@@ -382,6 +405,53 @@ function refreshProductCategories(){
       }
     });
 
+    toggle.dataset.bound="1";
+  }
+}
+  
+function refreshProductUnits(){
+  const select=$("productUnit");
+  const options=$("unitOptions");
+  const label=$("unitSelectedLabel");
+  const arrow=$("unitArrow");
+  const toggle=$("unitToggle");
+
+  if(!select || !options)return;
+
+  const units=["szt.","opak.","l","kg","rol."];
+
+  if(!units.includes(select.value)){
+    select.value="szt.";
+  }
+
+  if(label){
+    label.textContent=select.value;
+  }
+
+  options.innerHTML=units.map(u=>`
+    <button type="button"
+      data-unit="${u}"
+      style="display:block;width:100%;text-align:left;padding:10px;margin:3px 0;border:1px solid #ccc;border-radius:6px;background:${u===select.value?"#d8eee4":"white"};color:#222">
+      ${u===select.value?"●":"○"} ${u}
+    </button>
+  `).join("");
+
+  options.querySelectorAll("[data-unit]").forEach(button=>{
+    button.addEventListener("click",()=>{
+      select.value=button.getAttribute("data-unit");
+      if(label)label.textContent=select.value;
+      options.style.display="none";
+      if(arrow)arrow.textContent="▼";
+      refreshProductUnits();
+    });
+  });
+
+  if(toggle && !toggle.dataset.bound){
+    toggle.addEventListener("click",()=>{
+      const isOpen=options.style.display!=="none";
+      options.style.display=isOpen?"none":"block";
+      if(arrow)arrow.textContent=isOpen?"▼":"▲";
+    });
     toggle.dataset.bound="1";
   }
 }
@@ -604,6 +674,7 @@ else if(a==="edit"){
   $("productQty").value=p.qty;
   $("productMin").value=p.min;
   $("productUnit").value=p.unit;
+  refreshProductUnits();
   $("productCategory").value=p.category||"Żywność";
   refreshProductCategories();
   $("formTitle").textContent="✏️ Edytuj produkt";
