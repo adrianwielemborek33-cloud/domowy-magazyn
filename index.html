@@ -71,9 +71,15 @@
         <div><label for="productUnit">Jednostka</label><select id="productUnit"><option value="szt.">szt.</option><option value="opak.">opak.</option><option value="l">l</option><option value="kg">kg</option><option value="rol.">rol.</option></select></div>
       <div>
  <label for="productCategory">Kategoria</label>
-<div id="categoryPicker" style="border:1px solid #ccc;border-radius:8px;padding:10px;margin-bottom:10px">
-  <p style="margin:0 0 8px">Wybierz kategorię:</p>
-  <div id="categoryOptions" style="max-height:180px;overflow-y:auto;touch-action:pan-y"></div>
+<div id="categoryPicker" style="position:relative;margin-bottom:10px">
+  <button type="button" id="categoryToggle" class="secondary"
+    style="width:100%;display:flex;align-items:center;justify-content:space-between;text-align:left;padding:12px;border:1px solid #ccc;border-radius:8px;background:white;color:#222">
+    <span id="categorySelectedLabel">Wybierz kategorię</span>
+    <span id="categoryArrow">▼</span>
+  </button>
+  <div id="categoryOptions"
+    style="display:none;max-height:180px;overflow-y:auto;touch-action:pan-y;border:1px solid #ccc;border-radius:8px;margin-top:4px;padding:4px;background:white">
+  </div>
 </div>
 <select id="productCategory" style="display:none"></select>
       </div>
