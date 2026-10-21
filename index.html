@@ -293,7 +293,36 @@ function renderShopping(){
     root.innerHTML=data.history.slice(0,25).map(h=>`<li>${fmtDate(h.at)} — <strong>${esc(h.action)}</strong>: ${esc(h.productName)}${h.delta!==0?` (${h.delta>0?"+":""}${h.delta} ${esc(h.unit)})`:""}; stan: ${h.qty} ${esc(h.unit)}</li>`).join("")
   }
   function resetForm(){editingId=null;$("productForm").reset();$("productQty").value="1";$("productMin").value="1";$("formTitle").textContent="➕ Dodaj produkt";$("saveProduct").textContent="Dodaj produkt";$("cancelEdit").classList.add("hidden")}
-  
+function refreshProductCategories(){
+  const select=$("productCategory");
+  if(!select)return;
+
+  const current=select.value;
+
+  const defaults=[
+    "Żywność",
+    "Napoje",
+    "Chemia gospodarcza",
+    "Higiena i kosmetyki",
+    "Dziecko",
+    "Zwierzęta",
+    "Dom i inne"
+  ];
+
+  const categories=[...new Set([
+    ...defaults,
+    ...(data.categories||[]),
+    ...data.products.map(p=>(p.category||"Żywność").trim())
+  ].filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pl"));
+
+  select.innerHTML=categories.map(c=>
+    `<option value="${esc(c)}">${esc(c)}</option>`
+  ).join("");
+
+  if(categories.includes(current)){
+    select.value=current;
+  }
+}
 $("productForm").addEventListener("submit",e=>{
     e.preventDefault();
 
@@ -405,13 +434,8 @@ $("manageCategories").addEventListener("click",()=>{
 
       data.categories.push(name);
 
-      const select=$("productCategory");
-      if(select){
-        const option=document.createElement("option");
-        option.value=name;
-        option.textContent=name;
-        select.appendChild(option);
-      }
+      refreshProductCategories();
+$("productCategory").value=name;
 
       save();
       drawPanel();
