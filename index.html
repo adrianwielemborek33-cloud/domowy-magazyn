@@ -110,11 +110,25 @@
   </section>
   <section class="panel">
     <div class="row between"><h2>📦 Produkty</h2><span class="sub" id="productCount"></span></div>  
+
 <div class="filter-row" style="margin-bottom:12px">
   <label for="categoryFilter">Filtruj według kategorii:</label>
-  <select id="categoryFilter">
-    <option value="">Wszystkie kategorie</option>
-  </select>
+
+  <div id="filterPicker" style="position:relative">
+    <button type="button" id="filterToggle" class="secondary"
+      style="width:100%;display:flex;align-items:center;justify-content:space-between;text-align:left;padding:12px;border:1px solid #ccc;border-radius:8px;background:white;color:#222">
+      <span id="filterSelectedLabel">Wszystkie kategorie</span>
+      <span id="filterArrow">▼</span>
+    </button>
+
+    <div id="filterOptions"
+      style="display:none;max-height:180px;overflow-y:auto;touch-action:pan-y;border:1px solid #ccc;border-radius:8px;margin-top:4px;padding:4px;background:white">
+    </div>
+
+    <select id="categoryFilter" style="display:none">
+      <option value="">Wszystkie kategorie</option>
+    </select>
+  </div>
 </div>
     <div style="margin-bottom:12px">
   <button type="button" id="manageCategories" class="secondary">
@@ -235,6 +249,57 @@ function syncShopping(p){
     renderProducts();renderShopping();renderForecast();renderHistory();save()
   }
   
+function refreshCategoryFilter(){
+  const select=$("categoryFilter");
+  const options=$("filterOptions");
+  const label=$("filterSelectedLabel");
+  const arrow=$("filterArrow");
+  const toggle=$("filterToggle");
+
+  if(!select || !options)return;
+
+  const items=[...select.options].map(option=>({
+    value:option.value,
+    label:option.textContent
+  }));
+
+  const current=select.value;
+
+  if(label){
+    const selected=items.find(item=>item.value===current);
+    label.textContent=selected?selected.label:"Wszystkie kategorie";
+  }
+
+  options.innerHTML=items.map(item=>`
+    <button type="button"
+      data-filter-category="${esc(item.value)}"
+      style="display:block;width:100%;text-align:left;padding:10px;margin:3px 0;border:1px solid #ccc;border-radius:6px;background:${item.value===current?"#d8eee4":"white"};color:#222">
+      ${item.value===current?"●":"○"} ${esc(item.label)}
+    </button>
+  `).join("");
+
+  options.querySelectorAll("[data-filter-category]").forEach(button=>{
+    button.addEventListener("click",()=>{
+      select.value=button.getAttribute("data-filter-category");
+      options.style.display="none";
+
+      if(arrow)arrow.textContent="▼";
+
+      renderProducts();
+    });
+  });
+
+  if(toggle && !toggle.dataset.bound){
+    toggle.addEventListener("click",()=>{
+      const isOpen=options.style.display!=="none";
+      options.style.display=isOpen?"none":"block";
+
+      if(arrow)arrow.textContent=isOpen?"▼":"▲";
+    });
+
+    toggle.dataset.bound="1";
+  }
+  }
 function renderProducts(){
     const root=$("productList");
     const filter=$("categoryFilter");
@@ -250,6 +315,7 @@ function renderProducts(){
         categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
 
       filter.value=categories.includes(current)?current:"";
+   refreshCategoryFilter();
     }
 
     const products=selected
