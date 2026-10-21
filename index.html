@@ -203,7 +203,8 @@ function syncShopping(p){
     if(!data.products.length){root.innerHTML='<p class="empty">Nie masz jeszcze produktów. Dodaj pierwszy powyżej.</p>';return}
     root.innerHTML=data.products.map(p=>{
       const low=p.qty<=p.min,out=p.qty<=0,status=out?"Brak w magazynie":low?"Niski stan":"Zapas OK";
-      return `<article class="product"><div class="product-top"><div><h3>${esc(p.name)}</h3><span class="pill ${out?"out":low?"low":""}">${status}</span><p class="sub">Minimum: ${p.min} ${esc(p.unit)}</p></div><div class="qty">${p.qty} <small>${esc(p.unit)}</small></div></div><div class="actions"><button class="small" data-action="use" data-id="${p.id}">− Zużyto 1</button><button class="small secondary" data-action="add" data-id="${p.id}">+ Uzupełnij 1</button><button class="small ghost" data-action="edit" data-id="${p.id}">Edytuj</button><button class="small danger" data-action="delete" data-id="${p.id}">Usuń</button></div></article>`
+      
+return `<article class="product"><div class="product-top"><div><h3>${esc(p.name)}</h3><p class="sub">Kategoria: ${esc(p.category||"Żywność")}</p><span class="pill ${out?"out":low?"low":""}">${status}</span><p class="sub">Minimum: ${p.min} ${esc(p.unit)}</p></div><div class="qty">${p.qty} <small>${esc(p.unit)}</small></div></div><div class="actions"><button class="small" data-action="use" data-id="${p.id}">− Zużyto 1</button><button class="small secondary" data-action="add" data-id="${p.id}">+ Uzupełnij 1</button><button class="small ghost" data-action="edit" data-id="${p.id}">Edytuj</button><button class="small danger" data-action="delete" data-id="${p.id}">Usuń</button></div></article>`
     }).join("")
   }
   
