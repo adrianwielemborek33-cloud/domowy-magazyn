@@ -360,7 +360,7 @@ $("manageCategories").addEventListener("click",()=>{
     panel=document.createElement("div");
     panel.id="categoriesPanel";
     panel.className="panel";
-    $("productList").parentElement.appendChild(panel);
+    $("manageCategories").parentElement.insertAdjacentElement("afterend",panel);
   }
 
   panel.innerHTML=`
