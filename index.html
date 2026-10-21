@@ -480,6 +480,32 @@ $("productCategory").value=name;
     });
 
     $("closeCategories").addEventListener("click",()=>panel.remove());
+ 
+    panel.querySelectorAll(".deleteCategory").forEach(button=>{
+      button.addEventListener("click",()=>{
+        const name=button.dataset.category;
+
+        const used=data.products.some(p=>
+          (p.category||"Żywność").trim()===name
+        );
+
+        if(used){
+          alert("Nie można usunąć kategorii „"+name+"”, ponieważ jest przypisana do co najmniej jednego produktu. Najpierw zmień kategorię tych produktów.");
+          return;
+        }
+
+        if(!confirm("Czy na pewno usunąć kategorię „"+name+"”?")){
+          return;
+        }
+
+        data.categories=(data.categories||[]).filter(c=>c!==name);
+
+        refreshProductCategories();
+        save();
+        drawPanel();
+        alert("Usunięto kategorię: "+name);
+      });
+    });
   };
 
   drawPanel();
