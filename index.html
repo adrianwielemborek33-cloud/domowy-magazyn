@@ -297,8 +297,10 @@ function renderShopping(){
     root.innerHTML=data.history.slice(0,25).map(h=>`<li>${fmtDate(h.at)} — <strong>${esc(h.action)}</strong>: ${esc(h.productName)}${h.delta!==0?` (${h.delta>0?"+":""}${h.delta} ${esc(h.unit)})`:""}; stan: ${h.qty} ${esc(h.unit)}</li>`).join("")
   }
   function resetForm(){editingId=null;$("productForm").reset();$("productQty").value="1";$("productMin").value="1";$("formTitle").textContent="➕ Dodaj produkt";$("saveProduct").textContent="Dodaj produkt";$("cancelEdit").classList.add("hidden")}
+
 function refreshProductCategories(){
   const select=$("productCategory");
+  const options=$("categoryOptions");
   if(!select)return;
 
   const current=select.value;
@@ -326,6 +328,23 @@ function refreshProductCategories(){
   if(categories.includes(current)){
     select.value=current;
   }
+
+  if(!options)return;
+
+  options.innerHTML=categories.map(c=>`
+    <button type="button"
+      data-category="${esc(c)}"
+      style="display:block;width:100%;text-align:left;padding:10px;margin:3px 0;border:1px solid #ccc;border-radius:6px;background:${c===select.value?"#d8eee4":"white"};color:#222">
+      ${c===select.value?"●":"○"} ${esc(c)}
+    </button>
+  `).join("");
+
+  options.querySelectorAll("[data-category]").forEach(button=>{
+    button.addEventListener("click",()=>{
+      select.value=button.getAttribute("data-category");
+      refreshProductCategories();
+    });
+  });
 }
 $("productForm").addEventListener("submit",e=>{
     e.preventDefault();
