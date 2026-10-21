@@ -311,6 +311,7 @@ function resetForm(){
     refreshProductCategories();
   }
 }
+
 function refreshProductCategories(){
   const select=$("productCategory");
   const options=$("categoryOptions");
@@ -318,21 +319,17 @@ function refreshProductCategories(){
 
   const current=select.value;
 
-  const defaults=[
-    "Żywność",
-    "Napoje",
-    "Chemia gospodarcza",
-    "Higiena i kosmetyki",
-    "Dziecko",
-    "Zwierzęta",
-    "Dom i inne"
-  ];
-
   const categories=[...new Set([
-    ...defaults,
     ...(data.categories||[]),
     ...data.products.map(p=>(p.category||"Żywność").trim())
   ].filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pl"));
+
+  // Zachowaj kategorię aktualnie edytowanego produktu,
+  // nawet jeśli nie ma jej już na liście zarządzanych kategorii.
+  if(current && !categories.includes(current)){
+    categories.push(current);
+    categories.sort((a,b)=>a.localeCompare(b,"pl"));
+  }
 
   select.innerHTML=categories.map(c=>
     `<option value="${esc(c)}">${esc(c)}</option>`
