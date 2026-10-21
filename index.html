@@ -348,11 +348,14 @@ $("productForm").addEventListener("submit",e=>{
 });
   $("categoryFilter").addEventListener("change",renderProducts); 
 $("manageCategories").addEventListener("click",()=>{
-  const categories=[...new Set(
-    data.products
-      .map(p=>(p.category||"Żywność").trim())
-      .filter(Boolean)
-  )].sort((a,b)=>a.localeCompare(b,"pl"));
+  if(!Array.isArray(data.categories)){
+    data.categories=[];
+  }
+
+  const getCategories=()=>[...new Set([
+    ...data.categories,
+    ...data.products.map(p=>(p.category||"Żywność").trim())
+  ].filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pl"));
 
   let panel=$("categoriesPanel");
 
@@ -363,22 +366,62 @@ $("manageCategories").addEventListener("click",()=>{
     $("manageCategories").parentElement.insertAdjacentElement("afterend",panel);
   }
 
-  panel.innerHTML=`
-    <h2>⚙️ Zarządzanie kategoriami</h2>
-    <p class="sub">Kategorie używane przez Twoje produkty:</p>
-    <div>
-      ${categories.map(c=>`
-        <div style="padding:10px;margin:6px 0;border:1px solid #ddd;border-radius:8px">
-          ${esc(c)}
-        </div>
-      `).join("")}
-    </div>
-    <button type="button" id="closeCategories" class="secondary">
-      Zamknij
-    </button>
-  `;
+  const drawPanel=()=>{
+    const categories=getCategories();
 
-  $("closeCategories").addEventListener("click",()=>panel.remove());
+    panel.innerHTML=`
+      <h2>⚙️ Zarządzanie kategoriami</h2>
+      <p class="sub">Twoje kategorie:</p>
+      <div>
+        ${categories.map(c=>`
+          <div style="padding:10px;margin:6px 0;border:1px solid #ddd;border-radius:8px">
+            ${esc(c)}
+          </div>
+        `).join("")}
+      </div>
+      <button type="button" id="addCategory" class="secondary">
+        ➕ Dodaj kategorię
+      </button>
+      <button type="button" id="closeCategories" class="secondary">
+        Zamknij
+      </button>
+    `;
+
+    $("addCategory").addEventListener("click",()=>{
+      const answer=prompt("Podaj nazwę nowej kategorii:");
+      if(answer===null)return;
+
+      const name=answer.trim();
+
+      if(!name){
+        alert("Wpisz nazwę kategorii.");
+        return;
+      }
+
+      if(getCategories().some(c=>c.toLocaleLowerCase("pl")===name.toLocaleLowerCase("pl"))){
+        alert("Taka kategoria już istnieje.");
+        return;
+      }
+
+      data.categories.push(name);
+
+      const select=$("productCategory");
+      if(select){
+        const option=document.createElement("option");
+        option.value=name;
+        option.textContent=name;
+        select.appendChild(option);
+      }
+
+      save();
+      drawPanel();
+      alert("Dodano kategorię: "+name);
+    });
+
+    $("closeCategories").addEventListener("click",()=>panel.remove());
+  };
+
+  drawPanel();
   panel.scrollIntoView({behavior:"smooth",block:"start"});
 });
   $("cancelEdit").addEventListener("click",resetForm);
