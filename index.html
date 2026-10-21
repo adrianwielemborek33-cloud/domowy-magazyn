@@ -255,20 +255,59 @@ function renderShopping(){
     root.innerHTML=data.history.slice(0,25).map(h=>`<li>${fmtDate(h.at)} — <strong>${esc(h.action)}</strong>: ${esc(h.productName)}${h.delta!==0?` (${h.delta>0?"+":""}${h.delta} ${esc(h.unit)})`:""}; stan: ${h.qty} ${esc(h.unit)}</li>`).join("")
   }
   function resetForm(){editingId=null;$("productForm").reset();$("productQty").value="1";$("productMin").value="1";$("formTitle").textContent="➕ Dodaj produkt";$("saveProduct").textContent="Dodaj produkt";$("cancelEdit").classList.add("hidden")}
-  $("productForm").addEventListener("submit",e=>{
+  
+$("productForm").addEventListener("submit",e=>{
     e.preventDefault();
-    const name=$("productName").value.trim(),qty=Number($("productQty").value),min=Number($("productMin").value),unit=$("productUnit").value;
-    if(!name||!Number.isFinite(qty)||!Number.isFinite(min)||qty<0||min<0){alert("Sprawdź nazwę, stan i minimum.");return}
-    if(editingId){
-      const p=data.products.find(x=>x.id===editingId);if(!p)return;
-      p.name=name;p.qty=qty;p.min=min;p.unit=unit;
-      data.shopping.forEach(i=>{if(i.productId===p.id&&!i.done){i.name=name;i.unit=unit}});
-      addHistory("Edytowano",p,0);syncShopping(p)
-    }else{
-      const p={id:makeId(),name,qty,min,unit,createdAt:now()};data.products.push(p);addHistory("Dodano",p,0);syncShopping(p)
+
+    const name=$("productName").value.trim();
+    const qty=Number($("productQty").value);
+    const min=Number($("productMin").value);
+    const unit=$("productUnit").value;
+    const category=$("productCategory").value;
+
+    if(!name||!Number.isFinite(qty)||!Number.isFinite(min)||qty<0||min<0){
+      alert("Sprawdź nazwę, stan i minimum.");
+      return;
     }
-    resetForm();render()
-  });
+
+    if(editingId){
+      const p=data.products.find(x=>x.id===editingId);
+      if(!p)return;
+
+      p.name=name;
+      p.qty=qty;
+      p.min=min;
+      p.unit=unit;
+      p.category=category;
+
+      data.shopping.forEach(i=>{
+        if(i.productId===p.id&&!i.done){
+          i.name=name;
+          i.unit=unit;
+        }
+      });
+
+      addHistory("Edytowano",p,0);
+      syncShopping(p);
+    }else{
+      const p={
+        id:makeId(),
+        name,
+        qty,
+        min,
+        unit,
+        category,
+        createdAt:now()
+      };
+
+      data.products.push(p);
+      addHistory("Dodano",p,0);
+      syncShopping(p);
+    }
+
+    resetForm();
+    render();
+});
   $("cancelEdit").addEventListener("click",resetForm);
   $("productList").addEventListener("click",e=>{
     const b=e.target.closest("button[data-action]");if(!b)return;
