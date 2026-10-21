@@ -435,11 +435,15 @@ $("manageCategories").addEventListener("click",()=>{
       <h2>⚙️ Zarządzanie kategoriami</h2>
       <p class="sub">Twoje kategorie:</p>
       <div>
-        ${categories.map(c=>`
-          <div style="padding:10px;margin:6px 0;border:1px solid #ddd;border-radius:8px">
-            ${esc(c)}
-          </div>
-        `).join("")}
+        
+${categories.map(c=>`
+  <div style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;margin:6px 0;border:1px solid #ddd;border-radius:8px">
+    <span>${esc(c)}</span>
+    <button type="button" class="deleteCategory secondary" data-category="${esc(c)}">
+      Usuń
+    </button>
+  </div>
+`).join("")}
       </div>
       <button type="button" id="addCategory" class="secondary">
         ➕ Dodaj kategorię
