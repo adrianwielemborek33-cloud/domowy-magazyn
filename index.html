@@ -509,6 +509,52 @@ $("productCategory").value=name;
         alert("Usunięto kategorię: "+name);
       });
     });
+ 
+    panel.querySelectorAll(".renameCategory").forEach(button=>{
+      button.addEventListener("click",()=>{
+        const oldName=button.dataset.category;
+        const answer=prompt("Podaj nową nazwę kategorii:",oldName);
+
+        if(answer===null)return;
+
+        const newName=answer.trim();
+
+        if(!newName){
+          alert("Wpisz nazwę kategorii.");
+          return;
+        }
+
+        if(newName===oldName)return;
+
+        if(getCategories().some(c=>
+          c.toLocaleLowerCase("pl")===newName.toLocaleLowerCase("pl")
+        )){
+          alert("Kategoria o takiej nazwie już istnieje.");
+          return;
+        }
+
+        if(!confirm("Zmienić nazwę kategorii „"+oldName+"” na „"+newName+"”?")){
+          return;
+        }
+
+        data.categories=(data.categories||[]).map(c=>
+          c===oldName?newName:c
+        );
+
+        data.products.forEach(p=>{
+          if((p.category||"Żywność").trim()===oldName){
+            p.category=newName;
+          }
+        });
+
+        refreshProductCategories();
+        save();
+        render();
+        drawPanel();
+
+        alert("Zmieniono nazwę kategorii na: "+newName);
+      });
+    });
   };
 
   drawPanel();
