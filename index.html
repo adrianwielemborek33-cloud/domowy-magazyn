@@ -349,27 +349,37 @@ $("productForm").addEventListener("submit",e=>{
   $("categoryFilter").addEventListener("change",renderProducts); 
 $("manageCategories").addEventListener("click",()=>{
   const categories=[...new Set(
-    data.products.map(p=>(p.category||"Żywność").trim()).filter(Boolean)
+    data.products
+      .map(p=>(p.category||"Żywność").trim())
+      .filter(Boolean)
   )].sort((a,b)=>a.localeCompare(b,"pl"));
 
-  const answer=prompt(
-    "Kategorie — wpisz każdą w osobnym wierszu:",
-    categories.join("\n")
-  );
+  let panel=$("categoriesPanel");
 
-  if(answer===null)return;
-
-  const updated=answer.split(/\r?\n/)
-    .map(c=>c.trim())
-    .filter(Boolean);
-
-  if(!updated.length){
-    alert("Wpisz przynajmniej jedną kategorię.");
-    return;
+  if(!panel){
+    panel=document.createElement("div");
+    panel.id="categoriesPanel";
+    panel.className="panel";
+    $("productList").parentElement.appendChild(panel);
   }
 
-  alert("Odczytano kategorii: "+updated.length+
-    "\nNa razie nic nie zostało zmienione.");
+  panel.innerHTML=`
+    <h2>⚙️ Zarządzanie kategoriami</h2>
+    <p class="sub">Kategorie używane przez Twoje produkty:</p>
+    <div>
+      ${categories.map(c=>`
+        <div style="padding:10px;margin:6px 0;border:1px solid #ddd;border-radius:8px">
+          ${esc(c)}
+        </div>
+      `).join("")}
+    </div>
+    <button type="button" id="closeCategories" class="secondary">
+      Zamknij
+    </button>
+  `;
+
+  $("closeCategories").addEventListener("click",()=>panel.remove());
+  panel.scrollIntoView({behavior:"smooth",block:"start"});
 });
   $("cancelEdit").addEventListener("click",resetForm);
   $("productList").addEventListener("click",e=>{
