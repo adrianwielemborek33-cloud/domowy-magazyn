@@ -310,9 +310,14 @@ function resetForm(){
   }
 }
 
+
 function refreshProductCategories(){
   const select=$("productCategory");
   const options=$("categoryOptions");
+  const label=$("categorySelectedLabel");
+  const arrow=$("categoryArrow");
+  const toggle=$("categoryToggle");
+
   if(!select)return;
 
   const current=select.value;
@@ -322,8 +327,6 @@ function refreshProductCategories(){
     ...data.products.map(p=>(p.category||"Żywność").trim())
   ].filter(Boolean))].sort((a,b)=>a.localeCompare(b,"pl"));
 
-  // Zachowaj kategorię aktualnie edytowanego produktu,
-  // nawet jeśli nie ma jej już na liście zarządzanych kategorii.
   if(current && !categories.includes(current)){
     categories.push(current);
     categories.sort((a,b)=>a.localeCompare(b,"pl"));
@@ -339,6 +342,10 @@ function refreshProductCategories(){
 
   if(!options)return;
 
+  if(label){
+    label.textContent=select.value || "Wybierz kategorię";
+  }
+
   options.innerHTML=categories.map(c=>`
     <button type="button"
       data-category="${esc(c)}"
@@ -350,9 +357,33 @@ function refreshProductCategories(){
   options.querySelectorAll("[data-category]").forEach(button=>{
     button.addEventListener("click",()=>{
       select.value=button.getAttribute("data-category");
+
+      if(label){
+        label.textContent=select.value;
+      }
+
+      options.style.display="none";
+
+      if(arrow){
+        arrow.textContent="▼";
+      }
+
       refreshProductCategories();
     });
   });
+
+  if(toggle && !toggle.dataset.bound){
+    toggle.addEventListener("click",()=>{
+      const isOpen=options.style.display!=="none";
+      options.style.display=isOpen?"none":"block";
+
+      if(arrow){
+        arrow.textContent=isOpen?"▼":"▲";
+      }
+    });
+
+    toggle.dataset.bound="1";
+  }
 }
 $("productForm").addEventListener("submit",e=>{
     e.preventDefault();
