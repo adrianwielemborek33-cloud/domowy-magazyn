@@ -87,7 +87,13 @@
     <p class="note">Gdy stan osiągnie minimum lub spadnie poniżej niego, produkt trafi na listę zakupów.</p>
   </section>
   <section class="panel">
-    <div class="row between"><h2>📦 Produkty</h2><span class="sub" id="productCount"></span></div>
+    <div class="row between"><h2>📦 Produkty</h2><span class="sub" id="productCount"></span></div>  
+<div class="filter-row" style="margin-bottom:12px">
+  <label for="categoryFilter">Filtruj według kategorii:</label>
+  <select id="categoryFilter">
+    <option value="">Wszystkie kategorie</option>
+  </select>
+</div>
     <div id="productList" class="product-list"></div>
   </section>
   
@@ -198,10 +204,31 @@ function syncShopping(p){
     $("productCount").textContent=data.products.length+" pozycji";
     renderProducts();renderShopping();renderForecast();renderHistory();save()
   }
-  function renderProducts(){
+  
+function renderProducts(){
     const root=$("productList");
+    const filter=$("categoryFilter");
+    const selected=filter?filter.value:"";
+
+    if(filter){
+      const current=filter.value;
+      const categories=[...new Set(
+        data.products.map(p=>p.category||"Żywność")
+      )].sort((a,b)=>a.localeCompare(b,"pl"));
+
+      filter.innerHTML='<option value="">Wszystkie kategorie</option>'+
+        categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join("");
+
+      filter.value=categories.includes(current)?current:"";
+    }
+
+    const products=selected
+      ?data.products.filter(p=>(p.category||"Żywność")===selected)
+      :data.products;
+
+    if(!products.length){
     if(!data.products.length){root.innerHTML='<p class="empty">Nie masz jeszcze produktów. Dodaj pierwszy powyżej.</p>';return}
-    root.innerHTML=data.products.map(p=>{
+    root.innerHTML=products.map(p=>{
       const low=p.qty<=p.min,out=p.qty<=0,status=out?"Brak w magazynie":low?"Niski stan":"Zapas OK";
       
 return `<article class="product"><div class="product-top"><div><h3>${esc(p.name)}</h3><p class="sub">Kategoria: ${esc(p.category||"Żywność")}</p><span class="pill ${out?"out":low?"low":""}">${status}</span><p class="sub">Minimum: ${p.min} ${esc(p.unit)}</p></div><div class="qty">${p.qty} <small>${esc(p.unit)}</small></div></div><div class="actions"><button class="small" data-action="use" data-id="${p.id}">− Zużyto 1</button><button class="small secondary" data-action="add" data-id="${p.id}">+ Uzupełnij 1</button><button class="small ghost" data-action="edit" data-id="${p.id}">Edytuj</button><button class="small danger" data-action="delete" data-id="${p.id}">Usuń</button></div></article>`
@@ -309,6 +336,7 @@ $("productForm").addEventListener("submit",e=>{
     resetForm();
     render();
 });
+  $("categoryFilter").addEventListener("change",renderProducts);
   $("cancelEdit").addEventListener("click",resetForm);
   $("productList").addEventListener("click",e=>{
     const b=e.target.closest("button[data-action]");if(!b)return;
