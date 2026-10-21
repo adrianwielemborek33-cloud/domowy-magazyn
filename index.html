@@ -296,8 +296,19 @@ function renderShopping(){
     if(!data.history.length){root.innerHTML="<li>Brak zmian. Twoje działania pojawią się tutaj.</li>";return}
     root.innerHTML=data.history.slice(0,25).map(h=>`<li>${fmtDate(h.at)} — <strong>${esc(h.action)}</strong>: ${esc(h.productName)}${h.delta!==0?` (${h.delta>0?"+":""}${h.delta} ${esc(h.unit)})`:""}; stan: ${h.qty} ${esc(h.unit)}</li>`).join("")
   }
-  function resetForm(){editingId=null;$("productForm").reset();$("productQty").value="1";$("productMin").value="1";$("formTitle").textContent="➕ Dodaj produkt";$("saveProduct").textContent="Dodaj produkt";$("cancelEdit").classList.add("hidden")}
+function resetForm(){
+  editingId=null;
+  $("productForm").reset();
+  $("productQty").value="1";
+  $("productMin").value="1";
+  $("formTitle").textContent="➕ Dodaj produkt";
+  $("saveProduct").textContent="Dodaj produkt";
+  $("cancelEdit").classList.add("hidden");
 
+  if(typeof refreshProductCategories==="function"){
+    refreshProductCategories();
+  }
+}
 function refreshProductCategories(){
   const select=$("productCategory");
   const options=$("categoryOptions");
