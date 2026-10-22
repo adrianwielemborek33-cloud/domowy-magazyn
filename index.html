@@ -1535,9 +1535,11 @@ if (testButton) {
     }
 
     try {
-      new Notification("Domowy Magazyn — TEST", {
-        body: "Jeśli widzisz to powiadomienie, telefon je wyświetla."
-      });
+      const registration = await navigator.serviceWorker.ready;
+
+await registration.showNotification("Domowy Magazyn — TEST", {
+  body: "Jeśli widzisz to powiadomienie, telefon je wyświetla."
+});
       status.textContent = "Wysłano próbę powiadomienia testowego.";
     } catch (e) {
       alert("Błąd powiadomienia: " + e.message);
