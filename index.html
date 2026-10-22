@@ -62,6 +62,28 @@
     <div class="stat"><strong id="statShopping">0</strong><span>Na liście zakupów</span></div>
   </section>
   <section class="panel wide">
+    <h2>🔔 Powiadomienia o niskim stanie</h2>
+    <p class="note">
+      Otrzymuj alert, gdy produkty osiągną minimalny stan lub spadną poniżej niego.
+    </p>
+
+    <div class="fields">
+      <div>
+        <label for="lowStockTime">Godzina powiadomienia</label>
+        <input id="lowStockTime" type="time" value="09:00">
+      </div>
+      <div style="display:flex;align-items:end">
+        <button id="enableLowStockNotifications" type="button" style="width:100%">
+          Włącz powiadomienia
+        </button>
+      </div>
+    </div>
+
+    <p id="lowStockNotificationStatus" class="note" aria-live="polite">
+      Powiadomienia nie zostały jeszcze włączone.
+    </p>
+  </section>
+  <section class="panel wide">
     <div class="row between"><h2 id="formTitle">➕ Dodaj produkt</h2><button id="cancelEdit" class="ghost small hidden" type="button">Anuluj edycję</button></div>
     <form id="productForm">
       <div class="fields three">
@@ -1440,7 +1462,8 @@ async function enableLowStockNotifications(){
   settings.enabled = true;
   saveLowStockSettings(settings);
 
-  alert("Powiadomienia włączone. Ustaw godzinę i zapisz ją w ustawieniach aplikacji, jeśli dodamy taki formularz.");
+ $("lowStockNotificationStatus").textContent =
+  "Powiadomienia włączone. Godzina została zapisana na tym telefonie.";
   checkLowStockNotifications();
   return true;
 }
@@ -1488,6 +1511,50 @@ function checkLowStockNotifications(){
     console.error("Nie udało się wyświetlić powiadomienia:", e);
   }
 }
+  
+/* Połączenie panelu powiadomień z ustawieniami */
+(function(){
+  const timeInput = $("lowStockTime");
+  const enableButton = $("enableLowStockNotifications");
+  const status = $("lowStockNotificationStatus");
+
+  if (!timeInput || !enableButton || !status) return;
+
+  const settings = getLowStockSettings();
+  timeInput.value = settings.time || "09:00";
+
+  if (settings.enabled && "Notification" in window &&
+      Notification.permission === "granted") {
+    status.textContent = "Powiadomienia są włączone na tym telefonie.";
+  }
+
+  timeInput.addEventListener("change", function(){
+    const current = getLowStockSettings();
+    current.time = timeInput.value || "09:00";
+    saveLowStockSettings(current);
+    status.textContent = "Zapisano godzinę " + current.time + ".";
+  });
+
+  enableButton.addEventListener("click", async function(){
+    const current = getLowStockSettings();
+    current.time = timeInput.value || "09:00";
+    saveLowStockSettings(current);
+
+    const enabled = await enableLowStockNotifications();
+
+    if (enabled) {
+      status.textContent =
+        "Powiadomienia włączone. Godzina: " + current.time + ".";
+      checkLowStockNotifications();
+    } else {
+      status.textContent =
+        "Nie włączono powiadomień. Sprawdź zgodę w ustawieniach telefonu.";
+    }
+  });
+
+  /* Sprawdzaj cyklicznie, dopóki strona działa */
+  setInterval(checkLowStockNotifications, 30000);
+})();
 </script>
 </body>
 </html>
