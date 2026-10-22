@@ -1536,6 +1536,8 @@ function checkLowStockNotifications(){
   });
 
   enableButton.addEventListener("click", async function(){
+    alert("Przycisk działa — uruchomił się kod JavaScript.");
+    
     const current = getLowStockSettings();
     current.time = timeInput.value || "09:00";
     saveLowStockSettings(current);
