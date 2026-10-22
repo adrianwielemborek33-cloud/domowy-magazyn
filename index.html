@@ -407,17 +407,11 @@ return `<article class="product"><div class="product-top"><div><h3>${esc(p.name)
 $("productSearch").addEventListener("input",()=>{
   renderProducts();
 });
- const shoppingSearchInput=$("shoppingSearch");
-
-if(shoppingSearchInput){
-    shoppingSearchInput.oninput=function(){
+ document.addEventListener("input",function(e){
+    if(e.target && e.target.id==="shoppingSearch"){
         renderShopping();
-    };
-
-    shoppingSearchInput.onchange=function(){
-        renderShopping();
-    };
-  }
+    }
+});
 $("historyDate").addEventListener("change",()=>{
   renderHistory();
 });
