@@ -404,6 +404,16 @@ $("clearHistoryDate").addEventListener("click",()=>{
   $("historyDate").value="";
   renderHistory();
 }); 
+  
+$("clearHistory").addEventListener("click",()=>{
+  if(!confirm("Czy na pewno chcesz usunąć całą historię zmian? Tej operacji nie można cofnąć.")){
+    return;
+  }
+
+  data.history=[];
+  save();
+  renderHistory();
+});
 function renderShopping(){
     const root=$("shoppingList");
     const items=data.shopping.filter(i=>shoppingTab==="bought"?i.done:!i.done);
