@@ -407,7 +407,17 @@ return `<article class="product"><div class="product-top"><div><h3>${esc(p.name)
 $("productSearch").addEventListener("input",()=>{
   renderProducts();
 });
- 
+ const shoppingSearchInput=$("shoppingSearch");
+
+if(shoppingSearchInput){
+    shoppingSearchInput.oninput=function(){
+        renderShopping();
+    };
+
+    shoppingSearchInput.onchange=function(){
+        renderShopping();
+    };
+  }
 $("historyDate").addEventListener("change",()=>{
   renderHistory();
 });
@@ -421,18 +431,6 @@ $("clearHistory").addEventListener("click",()=>{
   if(!confirm("Czy na pewno chcesz usunąć całą historię zmian? Tej operacji nie można cofnąć.")){
     return;
   }
-
-const shoppingSearchInput=$("shoppingSearch");
-
-if(shoppingSearchInput){
-    shoppingSearchInput.oninput=function(){
-        renderShopping();
-    };
-
-    shoppingSearchInput.onchange=function(){
-        renderShopping();
-    };
-}
 
   data.history=[];
   save();
