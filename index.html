@@ -161,7 +161,19 @@
     <button id="tabBought" class="secondary small" type="button">Kupione</button>
   </div>
 
-  <div id="shoppingList" class="shopping-list"></div>
+  
+<div style="margin-bottom:12px">
+  <label for="shoppingSearch">🔎 Szukaj produktu na tej liście:</label>
+  <input
+    id="shoppingSearch"
+    type="search"
+    placeholder="Wpisz nazwę, np. mle..."
+    autocomplete="off"
+    style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccc;border-radius:8px"
+  />
+</div>
+
+<div id="shoppingList"></div>
 
   <div class="row" style="margin-top:12px">
     <button id="shoppingBulkAction" type="button">Kup zaznaczone</button>
@@ -409,26 +421,56 @@ $("clearHistory").addEventListener("click",()=>{
   if(!confirm("Czy na pewno chcesz usunąć całą historię zmian? Tej operacji nie można cofnąć.")){
     return;
   }
+  
+$("shoppingSearch").addEventListener("input",()=>{
+    renderShopping();
+});
 
   data.history=[];
   save();
   renderHistory();
 });
+
 function renderShopping(){
     const root=$("shoppingList");
-    const items=data.shopping.filter(i=>shoppingTab==="bought"?i.done:!i.done);
+    const searchInput=$("shoppingSearch");
+    const searchText=searchInput
+        ?searchInput.value.trim().toLocaleLowerCase("pl")
+        :"";
+
+    const tabItems=data.shopping.filter(i=>
+        shoppingTab==="bought"?i.done:!i.done
+    );
+
+    const items=tabItems.filter(i=>
+        (i.name||"").toLocaleLowerCase("pl").includes(searchText)
+    );
 
     $("tabToBuy").classList.toggle("secondary",shoppingTab!=="todo");
     $("tabBought").classList.toggle("secondary",shoppingTab!=="bought");
-    $("shoppingBulkAction").textContent=shoppingTab==="todo"?"Kup zaznaczone":"Uzupełnij zaznaczone";
+    $("shoppingBulkAction").textContent=
+        shoppingTab==="todo"?"Kup zaznaczone":"Uzupełnij zaznaczone";
 
     if(!items.length){
-        root.innerHTML=`<p class="empty">${shoppingTab==="todo"?"Lista zakupów jest pusta. Produkty poniżej minimum pojawią się tutaj automatycznie.":"Nie ma produktów oczekujących na uzupełnienie."}</p>`;
+        let message;
+
+        if(searchText){
+            message="Brak produktów pasujących do wyszukiwania.";
+        }else if(!tabItems.length){
+            message=shoppingTab==="todo"
+                ?"Lista zakupów jest pusta. Produkty poniżej minimum pojawią się tutaj automatycznie."
+                :"Nie ma produktów oczekujących na uzupełnienie.";
+        }else{
+            message="Brak pasujących produktów.";
+        }
+
+        root.innerHTML=`<p class="empty">${message}</p>`;
         return;
     }
 
     root.innerHTML=items.map(i=>{
         const qty=Math.max(1,Math.floor(Number(i.boughtQty)||1));
+
         return `<div class="shopping-item">
             <input type="checkbox" data-select-shopping="${i.id}" aria-label="Zaznacz ${esc(i.name)}">
             <div class="item-name">
