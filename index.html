@@ -1514,10 +1514,9 @@ function checkLowStockNotifications(){
   
 /* Połączenie panelu powiadomień z ustawieniami */
 (function(){
-  const timeInput = $("lowStockTime");
-  const enableButton = $("enableLowStockNotifications");
-  const status = $("lowStockNotificationStatus");
-
+  const timeInput = document.getElementById("lowStockTime");
+const enableButton = document.getElementById("enableLowStockNotifications");
+const status = document.getElementById("lowStockNotificationStatus");
   if (!timeInput || !enableButton || !status) {
   alert("Błąd panelu: " + (!timeInput ? "brak pola godziny. " : "") +
     (!enableButton ? "brak przycisku. " : "") +
