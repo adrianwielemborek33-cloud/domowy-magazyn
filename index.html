@@ -1518,8 +1518,12 @@ function checkLowStockNotifications(){
   const enableButton = $("enableLowStockNotifications");
   const status = $("lowStockNotificationStatus");
 
-  if (!timeInput || !enableButton || !status) return;
-
+  if (!timeInput || !enableButton || !status) {
+  alert("Błąd panelu: " + (!timeInput ? "brak pola godziny. " : "") +
+    (!enableButton ? "brak przycisku. " : "") +
+    (!status ? "brak pola statusu." : ""));
+  return;
+}
   const settings = getLowStockSettings();
   timeInput.value = settings.time || "09:00";
 
