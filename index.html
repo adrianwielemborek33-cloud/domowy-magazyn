@@ -76,6 +76,9 @@
         <button id="enableLowStockNotifications" type="button" style="width:100%">
           Włącz powiadomienia
         </button>
+        <button id="testNotification" type="button" class="secondary" style="width:100%;margin-top:8px">
+  Wyślij powiadomienie testowe
+        </button>
       </div>
     </div>
 
@@ -1517,6 +1520,30 @@ function checkLowStockNotifications(){
   const timeInput = document.getElementById("lowStockTime");
 const enableButton = document.getElementById("enableLowStockNotifications");
 const status = document.getElementById("lowStockNotificationStatus");
+ const testButton = document.getElementById("testNotification");
+
+if (testButton) {
+  testButton.addEventListener("click", async function() {
+    if (!("Notification" in window)) {
+      alert("Ta przeglądarka nie obsługuje powiadomień.");
+      return;
+    }
+
+    if (Notification.permission !== "granted") {
+      alert("Brak zgody na powiadomienia.");
+      return;
+    }
+
+    try {
+      new Notification("Domowy Magazyn — TEST", {
+        body: "Jeśli widzisz to powiadomienie, telefon je wyświetla."
+      });
+      status.textContent = "Wysłano próbę powiadomienia testowego.";
+    } catch (e) {
+      alert("Błąd powiadomienia: " + e.message);
+    }
+  });
+  }
   if (!timeInput || !enableButton || !status) {
   alert("Błąd panelu: " + (!timeInput ? "brak pola godziny. " : "") +
     (!enableButton ? "brak przycisku. " : "") +
