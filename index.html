@@ -172,7 +172,10 @@
     Po uzupełnieniu zapasu potwierdź to, aby zaktualizować magazyn.
   </p>
 </section>
-  <section class="panel"><h2>📈 Prognoza zużycia</h2><div id="forecastList"></div><p class="note">Prognozy są orientacyjne i stają się dokładniejsze, gdy aplikacja zbierze historię zużycia.</p></section>
+  <section class="panel"><h2>📈 Prognoza zużycia</h2>
+<div id="forecastList"
+  style="height:300px;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:4px">
+</div><p class="note">Prognozy są orientacyjne i stają się dokładniejsze, gdy aplikacja zbierze historię zużycia.</p></section>
   <section class="panel">
     <div class="row between"><h2>🕘 Historia zmian</h2><button id="clearHistory" class="ghost small" type="button">Wyczyść historię</button></div>
     <ul id="historyList" class="history-list"></ul>
