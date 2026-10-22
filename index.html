@@ -305,7 +305,7 @@ function syncShopping(p){
     $("statLow").textContent=data.products.filter(p=>p.qty<=p.min).length;
     $("statShopping").textContent=data.shopping.filter(i=>!i.done).length;
     $("productCount").textContent=data.products.length+" pozycji";
-    renderProducts();renderShopping();renderForecast();renderHistory();save()
+    renderProducts();renderShopping();renderForecast();renderHistory();checkLowStockNotifications();save()
   }
   
 function refreshCategoryFilter(){
@@ -1393,6 +1393,100 @@ if ("serviceWorker" in navigator) {
       .then(() => console.log("Domowy Magazyn: PWA uruchomione"))
       .catch(error => console.error("Błąd PWA:", error));
   });
+}
+  
+
+/* Powiadomienia o niskim stanie produktów */
+const LOW_STOCK_SETTINGS_KEY = "domowyMagazynNotificationSettings";
+
+function getLowStockSettings(){
+  try {
+    return JSON.parse(localStorage.getItem(LOW_STOCK_SETTINGS_KEY)) || {
+      enabled: false,
+      time: "09:00",
+      lastNotifiedDate: ""
+    };
+  } catch(e) {
+    return {
+      enabled: false,
+      time: "09:00",
+      lastNotifiedDate: ""
+    };
+  }
+}
+
+function saveLowStockSettings(settings){
+  localStorage.setItem(LOW_STOCK_SETTINGS_KEY, JSON.stringify(settings));
+}
+
+async function enableLowStockNotifications(){
+  if (!("Notification" in window)) {
+    alert("Ta przeglądarka nie obsługuje powiadomień.");
+    return false;
+  }
+
+  let permission = Notification.permission;
+
+  if (permission !== "granted") {
+    permission = await Notification.requestPermission();
+  }
+
+  if (permission !== "granted") {
+    alert("Nie przyznano zgody na powiadomienia. Sprawdź ustawienia telefonu.");
+    return false;
+  }
+
+  const settings = getLowStockSettings();
+  settings.enabled = true;
+  saveLowStockSettings(settings);
+
+  alert("Powiadomienia włączone. Ustaw godzinę i zapisz ją w ustawieniach aplikacji, jeśli dodamy taki formularz.");
+  checkLowStockNotifications();
+  return true;
+}
+
+function checkLowStockNotifications(){
+  const settings = getLowStockSettings();
+
+  if (!settings.enabled || !("Notification" in window)) return;
+  if (Notification.permission !== "granted") return;
+  if (typeof data === "undefined" || !Array.isArray(data.products)) return;
+
+  const now = new Date();
+  const dateKey = now.getFullYear() + "-" +
+    String(now.getMonth() + 1).padStart(2, "0") + "-" +
+    String(now.getDate()).padStart(2, "0");
+
+  const currentTime = String(now.getHours()).padStart(2, "0") + ":" +
+    String(now.getMinutes()).padStart(2, "0");
+
+  if (currentTime < settings.time) return;
+  if (settings.lastNotifiedDate === dateKey) return;
+
+  const lowProducts = data.products.filter(p =>
+    Number(p.qty) <= Number(p.min)
+  );
+
+  if (lowProducts.length === 0) return;
+
+  const message = lowProducts.slice(0, 5).map(p =>
+    `${p.name}: ${p.qty} ${p.unit || ""} (minimum: ${p.min})`
+  ).join("\n");
+
+  const extra = lowProducts.length > 5
+    ? `\n…i jeszcze ${lowProducts.length - 5} produktów`
+    : "";
+
+  try {
+    new Notification("Domowy Magazyn — niski stan", {
+      body: message + extra
+    });
+
+    settings.lastNotifiedDate = dateKey;
+    saveLowStockSettings(settings);
+  } catch(e) {
+    console.error("Nie udało się wyświetlić powiadomienia:", e);
+  }
 }
 </script>
 </body>
