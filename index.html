@@ -952,11 +952,13 @@ else if(a==="edit"){
   
 $("tabToBuy").addEventListener("click",()=>{
     shoppingTab="todo";
+    $("shoppingSearch").value="";
     renderShopping();
 });
 
 $("tabBought").addEventListener("click",()=>{
     shoppingTab="bought";
+    $("shoppingSearch").value="";
     renderShopping();
 });
 
