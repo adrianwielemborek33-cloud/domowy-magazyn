@@ -188,10 +188,28 @@
 <div id="forecastList"
   style="height:300px;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:4px">
 </div><p class="note">Prognozy są orientacyjne i stają się dokładniejsze, gdy aplikacja zbierze historię zużycia.</p></section>
-  <section class="panel">
-    <div class="row between"><h2>🕘 Historia zmian</h2><button id="clearHistory" class="ghost small" type="button">Wyczyść historię</button></div>
-    <ul id="historyList" class="history-list"></ul>
-  </section>
+<section class="panel">
+  <div class="row between">
+    <h2>🕘 Historia zmian</h2>
+    <button id="clearHistory" class="ghost small" type="button">Wyczyść historię</button>
+  </div>
+
+  <div style="margin-bottom:12px">
+    <label for="historyDate">📅 Filtruj historię według daty:</label>
+    <input
+      id="historyDate"
+      type="date"
+      style="width:100%;box-sizing:border-box;padding:12px;border:1px solid #ccc;border-radius:8px"
+    />
+    <button id="clearHistoryDate" class="secondary" type="button" style="margin-top:8px;width:100%">
+      Pokaż całą historię
+    </button>
+  </div>
+
+  <ul id="historyList" class="history-list"
+    style="height:300px;overflow-y:auto;overflow-x:hidden;touch-action:pan-y;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:4px">
+  </ul>
+</section>
   <section class="panel wide">
     <h2>⚙️ Dane aplikacji</h2>
 <p class="note">Dane magazynu są synchronizowane przez chmurę między telefonami zalogowanych domowników. Możesz wyeksportować kopię zapasową i przywrócić dane z pliku JSON. Pamiętaj: przywrócenie kopii zastępuje aktualne dane wspólnego magazynu.</p>
