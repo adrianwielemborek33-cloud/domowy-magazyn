@@ -422,9 +422,16 @@ $("clearHistory").addEventListener("click",()=>{
     return;
   }
   
-$("shoppingSearch").addEventListener("input",()=>{
-    renderShopping();
-});
+
+const shoppingSearchInput=$("shoppingSearch");
+
+if(shoppingSearchInput && !shoppingSearchInput.dataset.bound){
+    shoppingSearchInput.addEventListener("input",()=>{
+        renderShopping();
+    });
+
+    shoppingSearchInput.dataset.bound="1";
+}
 
   data.history=[];
   save();
