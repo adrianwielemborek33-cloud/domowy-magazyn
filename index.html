@@ -395,7 +395,15 @@ return `<article class="product"><div class="product-top"><div><h3>${esc(p.name)
 $("productSearch").addEventListener("input",()=>{
   renderProducts();
 });
-  
+ 
+$("historyDate").addEventListener("change",()=>{
+  renderHistory();
+});
+
+$("clearHistoryDate").addEventListener("click",()=>{
+  $("historyDate").value="";
+  renderHistory();
+}); 
 function renderShopping(){
     const root=$("shoppingList");
     const items=data.shopping.filter(i=>shoppingTab==="bought"?i.done:!i.done);
@@ -475,11 +483,37 @@ function renderForecast(){
 $("forecastSearch").addEventListener("input",()=>{
   renderForecast();
 });
-  function renderHistory(){
-    const root=$("historyList");
-    if(!data.history.length){root.innerHTML="<li>Brak zmian. Twoje działania pojawią się tutaj.</li>";return}
-    root.innerHTML=data.history.slice(0,25).map(h=>`<li>${fmtDate(h.at)} — <strong>${esc(h.action)}</strong>: ${esc(h.productName)}${h.delta!==0?` (${h.delta>0?"+":""}${h.delta} ${esc(h.unit)})`:""}; stan: ${h.qty} ${esc(h.unit)}</li>`).join("")
+  
+function renderHistory(){
+  const root=$("historyList");
+  const dateInput=$("historyDate");
+  const selectedDate=dateInput?dateInput.value:"";
+
+  const history=data.history.filter(h=>{
+    if(!selectedDate)return true;
+
+    const d=new Date(h.at);
+    const year=d.getFullYear();
+    const month=String(d.getMonth()+1).padStart(2,"0");
+    const day=String(d.getDate()).padStart(2,"0");
+    const historyDate=`${year}-${month}-${day}`;
+
+    return historyDate===selectedDate;
+  });
+
+  if(!history.length){
+    root.innerHTML=selectedDate
+      ?"<li>Brak zmian w wybranym dniu.</li>"
+      :"<li>Brak zmian. Twoje działania pojawią się tutaj.</li>";
+    return;
   }
+
+  const visibleHistory=selectedDate?history:history.slice(0,25);
+
+  root.innerHTML=visibleHistory.map(h=>
+    `<li>${fmtDate(h.at)} — <strong>${esc(h.action)}</strong>: ${esc(h.productName)}${h.delta!==0?` (${h.delta>0?"+":""}${h.delta} ${esc(h.unit)})`:""}; stan: ${h.qty} ${esc(h.unit)}</li>`
+  ).join("");
+}
 function resetForm(){
   editingId=null;
   $("productForm").reset();
