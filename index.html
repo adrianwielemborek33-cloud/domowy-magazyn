@@ -314,9 +314,12 @@ function refreshCategoryFilter(){
   }
   }
 function renderProducts(){
-    const root=$("productList");
-    const filter=$("categoryFilter");
-    const selected=filter?filter.value:"";
+    
+const root=$("productList");
+const filter=$("categoryFilter");
+const selected=filter?filter.value:"";
+const searchInput=$("productSearch");
+const searchText=searchInput?searchInput.value.trim().toLocaleLowerCase("pl"):"";
 
     if(filter){
       const current=filter.value;
@@ -331,9 +334,16 @@ function renderProducts(){
    refreshCategoryFilter();
     }
 
-    const products=selected
-      ?data.products.filter(p=>(p.category||"Żywność")===selected)
-      :data.products;
+    
+const products=data.products.filter(p=>{
+  const categoryMatch=!selected ||
+    (p.category||"Żywność")===selected;
+
+  const nameMatch=!searchText ||
+    (p.name||"").toLocaleLowerCase("pl").includes(searchText);
+
+  return categoryMatch && nameMatch;
+});
 
     
 if(!products.length){
@@ -348,6 +358,10 @@ if(!products.length){
 return `<article class="product"><div class="product-top"><div><h3>${esc(p.name)}</h3><p class="sub">Kategoria: ${esc(p.category||"Żywność")}</p><span class="pill ${out?"out":low?"low":""}">${status}</span><p class="sub">Minimum: ${p.min} ${esc(p.unit)}</p></div><div class="qty">${p.qty} <small>${esc(p.unit)}</small></div></div><div class="actions"><button class="small" data-action="use" data-id="${p.id}">− Zużyto 1</button><button class="small secondary" data-action="add" data-id="${p.id}">+ Uzupełnij 1</button><button class="small ghost" data-action="edit" data-id="${p.id}">Edytuj</button><button class="small danger" data-action="delete" data-id="${p.id}">Usuń</button></div></article>`
     }).join("")
   }
+  
+$("productSearch").addEventListener("input",()=>{
+  renderProducts();
+});
   
 function renderShopping(){
     const root=$("shoppingList");
