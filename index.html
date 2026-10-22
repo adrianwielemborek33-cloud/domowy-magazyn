@@ -408,18 +408,55 @@ function renderShopping(){
         </div>`;
     }).join("");
 }
-  function renderForecast(){
-    const root=$("forecastList");
-    if(!data.products.length){root.innerHTML='<p class="empty">Dodaj produkty, aby zobaczyć prognozę.</p>';return}
-    root.innerHTML=data.products.map(p=>{
-      const ev=data.history.filter(h=>h.productName===p.name&&h.action==="Zużyto"&&h.delta<0);
-      if(ev.length<2)return `<div class="forecast"><strong>${esc(p.name)}</strong><br>Za mało danych — zbieramy historię zużycia.</div>`;
-      const first=new Date(ev[ev.length-1].at).getTime(),last=new Date(ev[0].at).getTime(),days=Math.max(1,(last-first)/86400000);
-      const used=ev.reduce((sum,h)=>sum+Math.abs(h.delta),0),perDay=used/days;
-      if(!perDay||p.qty<=0)return `<div class="forecast"><strong>${esc(p.name)}</strong><br>${p.qty<=0?"Produkt jest na wyczerpaniu.":"Brak wystarczających danych do prognozy."}</div>`;
-      return `<div class="forecast"><strong>${esc(p.name)}</strong><br>Średnio ${perDay.toFixed(2).replace(".",",")} ${esc(p.unit)} dziennie · zapas na około ${Math.ceil(p.qty/perDay)} dni.</div>`
-    }).join("")
+  
+function renderForecast(){
+  const root=$("forecastList");
+  const searchInput=$("forecastSearch");
+  const searchText=searchInput
+    ?searchInput.value.trim().toLocaleLowerCase("pl")
+    :"";
+
+  const products=data.products.filter(p=>
+    (p.name||"").toLocaleLowerCase("pl").includes(searchText)
+  );
+
+  if(!data.products.length){
+    root.innerHTML='<p class="empty">Dodaj produkty, aby zobaczyć prognozę.</p>';
+    return;
   }
+
+  if(!products.length){
+    root.innerHTML='<p class="empty">Brak produktów pasujących do wyszukiwania.</p>';
+    return;
+  }
+
+  root.innerHTML=products.map(p=>{
+    const ev=data.history.filter(h=>
+      h.productName===p.name &&
+      h.action==="Zużyto" &&
+      h.delta<0
+    );
+
+    if(ev.length<2){
+      return `<div class="forecast"><strong>${esc(p.name)}</strong><br>Za mało danych — zbieramy historię zużycia.</div>`;
+    }
+
+    const first=new Date(ev[ev.length-1].at).getTime();
+    const last=new Date(ev[0].at).getTime();
+    const days=Math.max(1,(last-first)/86400000);
+    const used=ev.reduce((sum,h)=>sum+Math.abs(h.delta),0);
+    const perDay=used/days;
+
+    if(!perDay||p.qty<=0){
+      return `<div class="forecast"><strong>${esc(p.name)}</strong><br>${p.qty<=0?"Produkt jest na wyczerpaniu.":"Brak wystarczających danych do prognozy."}</div>`;
+    }
+
+    return `<div class="forecast"><strong>${esc(p.name)}</strong><br>Średnio ${perDay.toFixed(2).replace(".",",")} ${esc(p.unit)} dziennie · zapas na około ${Math.ceil(p.qty/perDay)} dni.</div>`;
+  }).join("");
+}
+$("forecastSearch").addEventListener("input",()=>{
+  renderForecast();
+});
   function renderHistory(){
     const root=$("historyList");
     if(!data.history.length){root.innerHTML="<li>Brak zmian. Twoje działania pojawią się tutaj.</li>";return}
