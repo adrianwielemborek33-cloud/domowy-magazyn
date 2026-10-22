@@ -1471,7 +1471,7 @@ async function enableLowStockNotifications(){
   return true;
 }
 
-function checkLowStockNotifications(){
+async function checkLowStockNotifications(){
   const settings = getLowStockSettings();
 
   if (!settings.enabled || !("Notification" in window)) return;
@@ -1504,9 +1504,13 @@ function checkLowStockNotifications(){
     : "";
 
   try {
-    new Notification("Domowy Magazyn — niski stan", {
-      body: message + extra
-    });
+    const registration = await navigator.serviceWorker.ready;
+
+await registration.showNotification("Domowy Magazyn — niski stan", {
+  body: message + extra,
+  icon: "./icon-192.png",
+  tag: "domowy-magazyn-niski-stan"
+});
 
     settings.lastNotifiedDate = dateKey;
     saveLowStockSettings(settings);
