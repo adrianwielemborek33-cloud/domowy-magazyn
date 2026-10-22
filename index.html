@@ -1540,7 +1540,9 @@ const status = document.getElementById("lowStockNotificationStatus");
 
   enableButton.addEventListener("click", async function(){
     alert("Przycisk działa — uruchomił się kod JavaScript.");
-    
+    alert("Obsługa powiadomień: " + ("Notification" in window) +
+      "\nZgoda przeglądarki: " +
+      (("Notification" in window) ? Notification.permission : "brak"));
     const current = getLowStockSettings();
     current.time = timeInput.value || "09:00";
     saveLowStockSettings(current);
