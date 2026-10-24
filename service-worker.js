@@ -45,3 +45,47 @@ self.addEventListener("fetch", event => {
       .catch(() => caches.match(event.request))
   );
 });
+self.addEventListener("push", event => {
+  let payload = {};
+
+  try {
+    payload = event.data ? event.data.json() : {};
+  } catch (error) {
+    payload = {
+      notification: {
+        body: event.data ? event.data.text() : ""
+      }
+    };
+  }
+
+  const title =
+    payload.notification?.title ||
+    payload.data?.title ||
+    "Domowy Magazyn";
+
+  const body =
+    payload.notification?.body ||
+    payload.data?.body ||
+    "Sprawdź stan produktów w magazynie.";
+
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon: "./icon-192.png",
+      tag: "domowy-magazyn-push",
+      data: {
+        url: "./"
+      }
+    })
+  );
+});
+
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+
+  event.waitUntil(
+    clients.openWindow(
+      new URL("./", self.registration.scope).href
+    )
+  );
+});
