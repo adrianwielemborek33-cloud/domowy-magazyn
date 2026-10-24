@@ -1190,7 +1190,11 @@ $("saveStatus").textContent =
     setDoc,
     serverTimestamp
   } from "https://www.gstatic.com/firebasejs/12.10.0/firebase-firestore.js";
-
+import {
+  getMessaging,
+  getToken,
+  isSupported
+} from "https://www.gstatic.com/firebasejs/12.10.0/firebase-messaging.js";
   const firebaseConfig = {
     apiKey: "AIzaSyCSs5tKjCotgz2LRy8AGb6z1VVQtrVOcbs",
     authDomain: "domowy-magazyn-ec707.firebaseapp.com",
@@ -1201,7 +1205,15 @@ $("saveStatus").textContent =
   const firebaseApp = initializeApp(firebaseConfig);
   const firebaseAuth = getAuth(firebaseApp);
   const firebaseDb = getFirestore(firebaseApp);
+let firebaseMessaging = null;
 
+try {
+  if (await isSupported()) {
+    firebaseMessaging = getMessaging(firebaseApp);
+  }
+} catch (error) {
+  console.warn("Firebase Messaging niedostępne:", error);
+}
   window.domowyMagazynFirebase = {
     app: firebaseApp,
     auth: firebaseAuth,
