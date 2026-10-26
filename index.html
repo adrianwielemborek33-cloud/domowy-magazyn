@@ -1588,8 +1588,16 @@ await registration.showNotification("Domowy Magazyn — TEST", {
   current.time = timeInput.value || "09:00";
   saveLowStockSettings(current);
 status.textContent = "TEST: kliknięcie przycisku wykryte";
-  const enabled = await enableLowStockNotifications();
+  let enabled;
 
+try {
+  enabled = await enableLowStockNotifications();
+} catch (error) {
+  status.textContent =
+    "BŁĄD WŁĄCZANIA: " + error.message;
+  console.error("Błąd powiadomień:", error);
+  return;
+}
   if (enabled) {
     status.textContent = "Rejestrowanie telefonu w Firebase...";
 
