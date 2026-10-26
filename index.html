@@ -1477,7 +1477,7 @@ async function enableLowStockNotifications(){
   settings.enabled = true;
   saveLowStockSettings(settings);
 
- $("lowStockNotificationStatus").textContent =
+ document.getElementById("lowStockNotificationStatus").textContent =
   "Powiadomienia włączone. Godzina została zapisana na tym telefonie.";
   checkLowStockNotifications();
   return true;
