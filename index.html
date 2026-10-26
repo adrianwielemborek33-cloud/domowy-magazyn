@@ -1583,26 +1583,41 @@ await registration.showNotification("Domowy Magazyn — TEST", {
     status.textContent = "Zapisano godzinę " + current.time + ".";
   });
 
-  enableButton.addEventListener("click", async function(){
-    alert("Przycisk działa — uruchomił się kod JavaScript.");
-    alert("Obsługa powiadomień: " + ("Notification" in window) +
-      "\nZgoda przeglądarki: " +
-      (("Notification" in window) ? Notification.permission : "brak"));
-    const current = getLowStockSettings();
-    current.time = timeInput.value || "09:00";
-    saveLowStockSettings(current);
+  enableButton.addEventListener("click", async function() {
+  const current = getLowStockSettings();
+  current.time = timeInput.value || "09:00";
+  saveLowStockSettings(current);
 
-    const enabled = await enableLowStockNotifications();
+  const enabled = await enableLowStockNotifications();
 
-    if (enabled) {
+  if (enabled) {
+    status.textContent = "Rejestrowanie telefonu w Firebase...";
+
+    try {
+      if (typeof window.registerPushDevice !== "function") {
+        throw new Error("Funkcja rejestracji telefonu jest niedostępna.");
+      }
+
+      await window.registerPushDevice();
+
       status.textContent =
-        "Powiadomienia włączone. Godzina: " + current.time + ".";
+        "Telefon zarejestrowany w Firebase. Godzina: " +
+        current.time + ".";
+
       checkLowStockNotifications();
-    } else {
+
+    } catch (error) {
+      console.error("Błąd rejestracji FCM:", error);
+
       status.textContent =
-        "Nie włączono powiadomień. Sprawdź zgodę w ustawieniach telefonu.";
+        "Powiadomienia lokalne są włączone, ale Firebase: " +
+        error.message;
     }
-  });
+  } else {
+    status.textContent =
+      "Nie włączono powiadomień. Sprawdź zgodę w ustawieniach telefonu.";
+  }
+});
 
   /* Sprawdzaj cyklicznie, dopóki strona działa */
   setInterval(checkLowStockNotifications, 30000);
