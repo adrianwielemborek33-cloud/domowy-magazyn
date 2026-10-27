@@ -1636,12 +1636,29 @@ await registration.showNotification("Domowy Magazyn — TEST", {
     status.textContent = "Powiadomienia są włączone na tym telefonie.";
   }
 
-  timeInput.addEventListener("change", function(){
-    const current = getLowStockSettings();
-    current.time = timeInput.value || "09:00";
-    saveLowStockSettings(current);
-    status.textContent = "Zapisano godzinę " + current.time + ".";
-  });
+  timeInput.addEventListener("change", async function() {
+  const current = getLowStockSettings();
+  current.time = timeInput.value || "09:00";
+  saveLowStockSettings(current);
+
+  if (Notification.permission !== "granted") {
+    status.textContent =
+      "Godzina zapisana lokalnie. Włącz powiadomienia, aby zapisać ją w Firebase.";
+    return;
+  }
+
+  status.textContent = "Zapisywanie godziny w Firebase...";
+
+  try {
+    await window.registerPushDevice();
+
+    status.textContent =
+      "Godzina " + current.time + " zapisana w Firebase.";
+  } catch (error) {
+    status.textContent =
+      "Godzina zapisana lokalnie, ale Firebase: " + error.message;
+  }
+});
 
   enableButton.addEventListener("click", async function() {
   const current = getLowStockSettings();
