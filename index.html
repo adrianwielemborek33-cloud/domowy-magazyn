@@ -1273,8 +1273,9 @@ window.registerPushDevice = async function() {
       document.getElementById("lowStockTime")?.value || "09:00",
     timeZone:
       Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Warsaw",
-    updatedAt: serverTimestamp()
-  }
+        updatedAt: serverTimestamp()
+  },
+  { merge: true }
 );
 
   return true;
