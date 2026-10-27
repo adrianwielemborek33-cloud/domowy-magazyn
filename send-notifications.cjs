@@ -1,5 +1,7 @@
 
-const admin = require("firebase-admin");
+const { initializeApp, cert } = require("firebase-admin/app");
+const { getFirestore, FieldValue } = require("firebase-admin/firestore");
+const { getMessaging } = require("firebase-admin/messaging");
 
 async function main() {
   const secret = process.env.FIREBASE_SERVICE_ACCOUNT;
@@ -10,11 +12,11 @@ async function main() {
 
   const serviceAccount = JSON.parse(secret);
 
-  admin.initializeApp({
-    credential: admin.credential.cert(serviceAccount)
+  initializeApp({
+    credential: cert(serviceAccount)
   });
 
-  const db = admin.firestore();
+  const db = getFirestore();
 
   const household = await db
     .doc("households/domowy-magazyn")
@@ -116,7 +118,7 @@ async function main() {
       if (device.lastNotifiedDate === today) continue;
 
       try {
-        await admin.messaging().send({
+        await getMessaging().send({
           token: device.token,
           data: {
             title: "Domowy Magazyn — niski stan",
@@ -131,7 +133,7 @@ async function main() {
 
         await deviceDoc.ref.update({
           lastNotifiedDate: today,
-          lastNotifiedAt: admin.firestore.FieldValue.serverTimestamp()
+          lastNotifiedAt: FieldValue.serverTimestamp()
         });
 
         console.log("Wysłano przypomnienie dla urządzenia.");
