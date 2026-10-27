@@ -1215,11 +1215,54 @@ try {
   console.warn("Firebase Messaging niedostępne:", error);
 }
   window.domowyMagazynFirebase = {
-    app: firebaseApp,
-    auth: firebaseAuth,
-    db: firebaseDb
-  };
+  app: firebaseApp,
+  auth: firebaseAuth,
+  db: firebaseDb,
+  messaging: firebaseMessaging,
+  getToken: getToken
+};
+window.registerPushDevice = async function() {
+  if (!firebaseMessaging) {
+    throw new Error("Firebase Messaging nie jest dostępne.");
+  }
 
+  const user = firebaseAuth.currentUser;
+  if (!user) {
+    throw new Error("Najpierw zaloguj się do aplikacji.");
+  }
+
+  if (Notification.permission !== "granted") {
+    throw new Error("Brak zgody na powiadomienia.");
+  }
+
+  const registration = await navigator.serviceWorker.ready;
+
+  const token = await getToken(firebaseMessaging, {
+    vapidKey: VAPID_PUBLIC_KEY,
+    serviceWorkerRegistration: registration
+  });
+
+  if (!token) {
+    throw new Error("Nie udało się uzyskać tokenu FCM.");
+  }
+
+  let deviceId = localStorage.getItem("domowyMagazynDeviceId");
+
+  if (!deviceId) {
+    deviceId = crypto.randomUUID();
+    localStorage.setItem("domowyMagazynDeviceId", deviceId);
+  }
+
+  await setDoc(
+    doc(firebaseDb, "users", user.uid, "pushTokens", deviceId),
+    {
+      token: token,
+      updatedAt: serverTimestamp()
+    }
+  );
+
+  return true;
+};
   const loginForm = document.getElementById("loginForm");
   const loginPanel = document.getElementById("loginPanel");
   const appMain = document.getElementById("appMain");
