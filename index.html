@@ -1266,12 +1266,16 @@ window.registerPushDevice = async function() {
   }
 
   await setDoc(
-    doc(firebaseDb, "users", user.uid, "pushTokens", deviceId),
-    {
-      token: token,
-      updatedAt: serverTimestamp()
-    }
-  );
+  doc(firebaseDb, "users", user.uid, "pushTokens", deviceId),
+  {
+    token: token,
+    notificationTime:
+      document.getElementById("lowStockTime")?.value || "09:00",
+    timeZone:
+      Intl.DateTimeFormat().resolvedOptions().timeZone || "Europe/Warsaw",
+    updatedAt: serverTimestamp()
+  }
+);
 
   return true;
 };
