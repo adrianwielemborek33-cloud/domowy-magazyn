@@ -1206,14 +1206,22 @@ import {
   const firebaseAuth = getAuth(firebaseApp);
   const firebaseDb = getFirestore(firebaseApp);
 let firebaseMessaging = null;
+let messagingError = "";
 
 try {
-  if (await isSupported()) {
+  const supported = await isSupported();
+
+  if (supported) {
     firebaseMessaging = getMessaging(firebaseApp);
+  } else {
+    messagingError = "isSupported zwróciło false";
   }
 } catch (error) {
-  console.warn("Firebase Messaging niedostępne:", error);
+  messagingError = error.message;
+  console.error("Firebase Messaging:", error);
 }
+
+window.messagingError = messagingError;
   window.domowyMagazynFirebase = {
   app: firebaseApp,
   auth: firebaseAuth,
@@ -1223,7 +1231,10 @@ try {
 };
 window.registerPushDevice = async function() {
   if (!firebaseMessaging) {
-    throw new Error("Firebase Messaging nie jest dostępne.");
+    throw new Error(
+  "Firebase Messaging nie jest dostępne. " +
+  (window.messagingError || "Brak szczegółów błędu.")
+); 
   }
 
   const user = firebaseAuth.currentUser;
