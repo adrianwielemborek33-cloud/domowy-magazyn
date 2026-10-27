@@ -1,0 +1,35 @@
+
+name: Domowy Magazyn - przypomnienia
+
+on:
+  schedule:
+    - cron: '3,13,23,33,43,53 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: domowy-magazyn-notifications
+  cancel-in-progress: false
+
+jobs:
+  notifications:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Pobierz kod
+        uses: actions/checkout@v4
+
+      - name: Przygotuj Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Zainstaluj Firebase Admin
+        run: npm install --no-save firebase-admin@14.5.0
+
+      - name: Sprawdz i wyslij powiadomienia
+        env:
+          FIREBASE_SERVICE_ACCOUNT: ${{ secrets.FIREBASE_SERVICE_ACCOUNT }}
+        run: node send-notifications.cjs
