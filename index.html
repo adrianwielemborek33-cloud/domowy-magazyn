@@ -1596,30 +1596,6 @@ const enableButton = document.getElementById("enableLowStockNotifications");
 const status = document.getElementById("lowStockNotificationStatus");
  const testButton = document.getElementById("testNotification");
 
-if (testButton) {
-  testButton.addEventListener("click", async function() {
-    if (!("Notification" in window)) {
-      alert("Ta przeglądarka nie obsługuje powiadomień.");
-      return;
-    }
-
-    if (Notification.permission !== "granted") {
-      alert("Brak zgody na powiadomienia.");
-      return;
-    }
-
-    try {
-      const registration = await navigator.serviceWorker.ready;
-
-await registration.showNotification("Domowy Magazyn — TEST", {
-  body: "Jeśli widzisz to powiadomienie, telefon je wyświetla."
-});
-      status.textContent = "Wysłano próbę powiadomienia testowego.";
-    } catch (e) {
-      alert("Błąd powiadomienia: " + e.message);
-    }
-  });
-  }
   if (!timeInput || !enableButton || !status) {
   alert("Błąd panelu: " + (!timeInput ? "brak pola godziny. " : "") +
     (!enableButton ? "brak przycisku. " : "") +
