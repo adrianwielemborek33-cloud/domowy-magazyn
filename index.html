@@ -1594,8 +1594,7 @@ await registration.showNotification("Domowy Magazyn — niski stan", {
   const timeInput = document.getElementById("lowStockTime");
 const enableButton = document.getElementById("enableLowStockNotifications");
 const status = document.getElementById("lowStockNotificationStatus");
- const testButton = document.getElementById("testNotification");
-
+ 
   if (!timeInput || !enableButton || !status) {
   alert("Błąd panelu: " + (!timeInput ? "brak pola godziny. " : "") +
     (!enableButton ? "brak przycisku. " : "") +
@@ -1638,7 +1637,7 @@ const status = document.getElementById("lowStockNotificationStatus");
   const current = getLowStockSettings();
   current.time = timeInput.value || "09:00";
   saveLowStockSettings(current);
-status.textContent = "TEST: kliknięcie przycisku wykryte";
+
   let enabled;
 
 try {
