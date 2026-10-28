@@ -67,18 +67,19 @@
       Otrzymuj alert, gdy produkty osiągną minimalny stan lub spadną poniżej niego.
     </p>
 
+    
     <div class="fields">
       <div>
         <label for="lowStockTime">Godzina powiadomienia</label>
         <input id="lowStockTime" type="time" value="09:00">
       </div>
       <div style="display:flex;align-items:end">
-        <button id="testNotification" type="button" class="secondary" style="width:100%;margin-top:8px">
-  Wyślij powiadomienie testowe
+        <button id="enableLowStockNotifications" type="button" style="width:100%">
+          Włącz powiadomienia
         </button>
       </div>
     </div>
-
+    
     <p id="lowStockNotificationStatus" class="note" aria-live="polite">
       Powiadomienia nie zostały jeszcze włączone.
     </p>
