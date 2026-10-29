@@ -98,8 +98,10 @@ async function main() {
       const currentMinutes =
         Number(value("hour")) * 60 + Number(value("minute"));
 
-      const match = /^([01]\d|2[0-3]):([0-5]\d)$/
-        .exec(device.notificationTime);
+      
+const match = /^(0?\d|1\d|2[0-3]):([0-5]\d)$/
+  .exec(device.notificationTime);
+
 
       if (!match) continue;
 
