@@ -63,15 +63,30 @@ async function main() {
   const users = await db.collection("users").listDocuments();
 
   for (const userRef of users) {
-    if (!members.includes(userRef.id)) continue;
+  if (!members.includes(userRef.id)) {
+    console.log("Pominięto użytkownika: nie ma go na liście members.");
+    continue;
+  }
 
-    const devices = await userRef.collection("pushTokens").get();
+  const devices = await userRef.collection("pushTokens").get();
 
-    for (const deviceDoc of devices.docs) {
-      const device = deviceDoc.data();
+  console.log("Użytkownik ma dokumentów pushTokens:", devices.size);
 
-      if (!device.token || !device.notificationTime) continue;
+  for (const deviceDoc of devices.docs) {
+    const device = deviceDoc.data();
 
+    console.log(
+      "Sprawdzam urządzenie:",
+      "token:", Boolean(device.token),
+      "godzina:", device.notificationTime,
+      "strefa:", device.timeZone,
+      "ostatnia data:", device.lastNotifiedDate
+    );
+
+    if (!device.token || !device.notificationTime) {
+      console.log("Pominięto urządzenie: brak tokenu lub godziny.");
+      continue;
+    }
       let localParts;
 
       try {
