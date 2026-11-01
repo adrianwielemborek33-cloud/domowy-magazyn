@@ -1702,6 +1702,31 @@ try {
   /* Sprawdzaj cyklicznie, dopóki strona działa */
   setInterval(checkLowStockNotifications, 30000);
 })();
+  // Ustawienia wyglądu aplikacji – osobno na każdym urządzeniu
+(function(){
+  const select = document.getElementById("layoutMode");
+  if (!select) return;
+
+  function applyLayout(mode) {
+    document.body.classList.remove("layout-phone", "layout-computer");
+
+    if (mode === "phone") {
+      document.body.classList.add("layout-phone");
+    } else if (mode === "computer") {
+      document.body.classList.add("layout-computer");
+    }
+  }
+
+  const savedMode = localStorage.getItem("domowyMagazynLayout") || "auto";
+
+  select.value = savedMode;
+  applyLayout(savedMode);
+
+  select.addEventListener("change", function(){
+    localStorage.setItem("domowyMagazynLayout", select.value);
+    applyLayout(select.value);
+  });
+})();
 </script>
 </body>
 </html>
