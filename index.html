@@ -25,9 +25,28 @@
     .pill{font-size:12px;font-weight:700;border-radius:999px;padding:4px 8px;display:inline-block;background:#edf2ef;color:#526158}.pill.low{background:#fff0d9;color:#8b5b08}.pill.out{background:#ffe6e6;color:var(--red)}
     .actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.actions button{flex:1}.shopping-item{padding:11px;display:flex;align-items:center;gap:10px}.shopping-item input[type=checkbox]{width:19px;height:19px;accent-color:var(--green)}.item-name{flex:1}.shopping-item.done .item-name{text-decoration:line-through;color:var(--muted)}
     .empty,.note{color:var(--muted);font-size:13px}.history-list li{font-size:13px;color:var(--muted);margin:6px 0 0 18px}.forecast{border-left:3px solid var(--green);padding:8px 10px;background:#f0f7f3;border-radius:0 8px 8px 0;margin-top:8px;font-size:14px}.hidden{display:none!important}
-    @media(min-width:700px){main{grid-template-columns:1fr 1fr}.stats,.wide{grid-column:1/-1}.fields.three{grid-template-columns:repeat(3,minmax(0,1fr))}}
-  body.layout-phone #appMain {
+    @media(min-width:700px) {
+  main {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .stats,
+  .wide {
+    grid-column: 1 / -1;
+  }
+
+  .fields.three {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+body.layout-phone #appMain {
   grid-template-columns: 1fr;
+}
+
+body.layout-phone #appMain .wide,
+body.layout-phone #appMain .stats {
+  grid-column: 1 / -1;
 }
 
 body.layout-computer #appMain {
